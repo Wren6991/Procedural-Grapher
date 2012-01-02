@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="proceduralgrapherDialog">
+		<title>Procedural Grapher</title>
+		<size>-1,-1</size>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
+		<object class="wxBoxSizer" variable="BoxSizer1" member="yes">
+			<object class="sizeritem">
+				<object class="wxBoxSizer" variable="BoxSizer2" member="no">
+					<orient>wxVERTICAL</orient>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TXTEXPR" variable="txtExpr" member="yes">
+							<value>y = x^3 - x</value>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+								<family>swiss</family>
+								<face>Consolas</face>
+							</font>
+							<style>wxTE_PROCESS_ENTER|wxTE_PROCESS_TAB|wxTE_MULTILINE|wxTE_CHARWRAP|wxSUNKEN_BORDER|wxVSCROLL</style>
+							<handler function="Tokenize" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>30</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TXTOUTPUT" variable="txtOutput" member="yes">
+							<value>Text</value>
+							<bg>wxSYS_COLOUR_HIGHLIGHTTEXT</bg>
+							<style>wxTE_MULTILINE|wxTE_READONLY|wxSUNKEN_BORDER|wxVSCROLL</style>
+							<handler function="OntxtOutputText" entry="EVT_TEXT" />
+						</object>
+						<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>10</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBoxSizer" variable="BoxSizer3" member="no">
+					<object class="sizeritem">
+						<object class="wxGLCanvas" name="ID_GLCANVAS1" variable="GLCanvas1" member="yes">
+							<mDepthSize>16</mDepthSize>
+							<minsize>300,300</minsize>
+							<handler function="OnGLCanvas1LeftDown" entry="EVT_LEFT_DOWN" />
+							<handler function="OnGLCanvas1LeftUp" entry="EVT_LEFT_UP" />
+							<handler function="OnGLCanvas1MiddleDown" entry="EVT_MIDDLE_DOWN" />
+							<handler function="OnGLCanvas1MiddleUp" entry="EVT_MIDDLE_UP" />
+							<handler function="OnGLCanvas1MouseMove" entry="EVT_MOTION" />
+							<handler function="OnGLCanvas1MouseWheel" entry="EVT_MOUSEWHEEL" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

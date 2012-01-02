@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="proceduralgrapher" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin\Debug\proceduralgrapher" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj\Debug\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="-g" />
+					<Add directory="C:\wxWidgets-2.9.2\lib\gcc_dll\mswu" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="C:\wxWidgets-2.9.2\lib\gcc_dll\mswu" />
+				</ResourceCompiler>
+				<Linker>
+					<Add library="libwxmsw29u.a" />
+					<Add directory="C:\wxWidgets-2.9.2\lib\gcc_dll" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin\Release\proceduralgrapher" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj\Release\" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add directory="C:\wxWidgets-2.9.2\lib\gcc_dll\mswu" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="C:\wxWidgets-2.9.2\lib\gcc_dll\mswu" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="libwxmsw29u.a" />
+					<Add directory="C:\wxWidgets-2.9.2\lib\gcc_dll" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-pipe" />
+			<Add option="-mthreads" />
+			<Add option='[[if (PLATFORM == PLATFORM_MSW &amp;&amp; (GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
+			<Add option="-D__GNUWIN32__" />
+			<Add option="-D__WXMSW__" />
+			<Add option="-DWXUSINGDLL" />
+			<Add option="-DwxUSE_UNICODE" />
+			<Add directory="C:\wxWidgets-2.9.2\include" />
+			<Add directory="C:\wxWidgets-2.9.2\contrib\include" />
+		</Compiler>
+		<ResourceCompiler>
+			<Add directory="C:\wxWidgets-2.9.2\include" />
+		</ResourceCompiler>
+		<Linker>
+			<Add option="-mthreads" />
+			<Add library="C:\wxWidgets-2.9.2\lib\gcc_dll\libwxmsw29u_gl.a" />
+			<Add library="libopengl32.a" />
+		</Linker>
+		<Unit filename="draw.h" />
+		<Unit filename="parser.cpp" />
+		<Unit filename="parser.h" />
+		<Unit filename="proceduralgrapherApp.cpp" />
+		<Unit filename="proceduralgrapherApp.h" />
+		<Unit filename="proceduralgrapherMain.cpp" />
+		<Unit filename="proceduralgrapherMain.h" />
+		<Unit filename="resource.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
+		<Unit filename="tokenizer.cpp" />
+		<Unit filename="tokenizer.h" />
+		<Unit filename="wxsmith\proceduralgrapherdialog.wxs" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+			<wxsmith version="1">
+				<gui name="wxWidgets" src="proceduralgrapherApp.cpp" main="proceduralgrapherDialog" init_handlers="necessary" language="CPP" />
+				<resources>
+					<wxDialog wxs="wxsmith/proceduralgrapherdialog.wxs" src="proceduralgrapherMain.cpp" hdr="proceduralgrapherMain.h" name="proceduralgrapherDialog" language="CPP" />
+				</resources>
+			</wxsmith>
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
