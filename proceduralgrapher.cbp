@@ -66,6 +66,7 @@
 			<Add library="libopengl32.a" />
 		</Linker>
 		<Unit filename="draw.h" />
+		<Unit filename="interpreter.h" />
 		<Unit filename="parser.cpp" />
 		<Unit filename="parser.h" />
 		<Unit filename="proceduralgrapherApp.cpp" />

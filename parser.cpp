@@ -543,7 +543,7 @@ void parser::implicitplot(int exprindex)
             vars["y"] = y;
             jumpto(exprindex);
             grid[i][j] = expression();
-            color4(0, 0, 1, grid[i][j]);
+            /*color4(0, 0, 1, grid[i][j]);
             float polydata[8];
             polydata[0] = x - stepx;
             polydata[1] = y - stepy;
@@ -553,12 +553,100 @@ void parser::implicitplot(int exprindex)
             polydata[5] = y;
             polydata[6] = x;
             polydata[7] = y - stepy;
-            poly2(polydata, 4);
+            poly2(polydata, 4);*/
             y += stepy;
         }
         x += stepx;
     }
+    //expression();
+
+    double lastx = data.left;
+    x = lastx + stepx;
+    int lasti = 0;
+    double lasty;
+    int lastj, mscase;
+
+    for (int i = 1; i <= ncells; i++)
+    {
+        lastj = 0;
+        lasty = data.bottom;
+        y = lasty + stepy;
+        for(int j = 1; j <= ncells; j++)
+        {
+            mscase = 0;
+            if (grid[lasti][lastj] > 0)
+                mscase |= 1;
+            if (grid[i][lastj] > 0)
+                mscase |= 2;
+            if (grid[i][j] > 0)
+                mscase |= 4;
+            if(grid[lasti][j] > 0)
+                mscase |= 8;
+            switch (mscase)
+            {
+                case 0:
+                    break;
+                case 1:
+                    line2(lastx, lasty + stepy * grid[lasti][lastj] / (grid[lasti][lastj] - grid[lasti][j]), lastx + stepx * grid[lasti][lastj] / (grid[lasti][lastj] - grid[i][lastj]), lasty);
+                    break;
+                case 2:
+                    line2(x, lasty + stepy * grid[i][lastj] / (grid[i][lastj] - grid[i][j]), lastx + stepx * grid[lasti][lastj] / (grid[lasti][lastj] - grid[i][lastj]), lasty);
+                    break;
+                case 3:
+                    line2(lastx, lasty + stepy * grid[lasti][lastj] / (grid[lasti][lastj] - grid[lasti][j]), x, lasty + stepy * grid[i][lastj] / (grid[i][lastj] - grid[i][j]));
+                    break;
+                case 4:
+                    line2(lastx + stepx * grid[lasti][j] / (grid[lasti][j] - grid[i][j]), y, x, lasty + stepy * grid[i][lastj] / (grid[i][lastj] - grid[i][j]));
+                    break;
+                case 5:
+                    std::cout << lasty + stepy * grid[lasti][lastj] / (grid[lasti][lastj] - grid[lasti][j]) << "\n";
+                    line2(lastx, lasty + stepy * grid[lasti][lastj] / (grid[lasti][lastj] - grid[lasti][j]), lastx + stepx * grid[lasti][lastj] / (grid[lasti][lastj] - grid[i][lastj]), lasty);
+                    line2(lastx + stepx * grid[lasti][j] / (grid[lasti][j] - grid[i][j]), y, x, lasty + stepy * grid[i][lastj] / (grid[i][lastj] - grid[i][j]));
+                    break;
+                case 6:
+                    line2(lastx + stepx * grid[lasti][lastj] / (grid[lasti][lastj] - grid[i][lastj]), lasty, lastx + stepx * grid[lasti][j] / (grid[lasti][j] - grid[i][j]), y);
+                    break;
+                case 7:
+                    line2(lastx + stepx * grid[lasti][j] / (grid[lasti][j] - grid[i][j]), y, lastx, lasty + stepy * grid[lasti][lastj] / (grid[lasti][lastj] - grid[lasti][j]));
+                    break;
+                case 15:
+                    break;
+                case 14:
+                    line2(lastx, lasty + stepy * grid[lasti][lastj] / (grid[lasti][lastj] - grid[lasti][j]), lastx + stepx * grid[lasti][lastj] / (grid[lasti][lastj] - grid[i][lastj]), lasty);
+                    break;
+                case 13:
+                    line2(x, lasty + stepy * grid[i][lastj] / (grid[i][lastj] - grid[i][j]), lastx + stepx * grid[lasti][lastj] / (grid[lasti][lastj] - grid[i][lastj]), lasty);
+                    break;
+                case 12:
+                    line2(lastx, lasty + stepy * grid[lasti][lastj] / (grid[lasti][lastj] - grid[lasti][j]), x, lasty + stepy * grid[i][lastj] / (grid[i][lastj] - grid[i][j]));
+                    break;
+                case 11:
+                    line2(lastx + stepx * grid[lasti][j] / (grid[lasti][j] - grid[i][j]), y, x, lasty + stepy * grid[i][lastj] / (grid[i][lastj] - grid[i][j]));
+                    break;
+                case 10:
+                    std::cout << lasty + stepy * grid[lasti][lastj] / (grid[lasti][lastj] - grid[lasti][j]) << "\n";
+                    line2(lastx, lasty + stepy * grid[lasti][lastj] / (grid[lasti][lastj] - grid[lasti][j]), lastx + stepx * grid[lasti][lastj] / (grid[lasti][lastj] - grid[i][lastj]), lasty);
+                    line2(lastx + stepx * grid[lasti][j] / (grid[lasti][j] - grid[i][j]), y, x, lasty + stepy * grid[i][lastj] / (grid[i][lastj] - grid[i][j]));
+                    break;
+                case 9:
+                    line2(lastx + stepx * grid[lasti][lastj] / (grid[lasti][lastj] - grid[i][lastj]), lasty, lastx + stepx * grid[lasti][j] / (grid[lasti][j] - grid[i][j]), y);
+                    break;
+                case 8:
+                    line2(lastx + stepx * grid[lasti][j] / (grid[lasti][j] - grid[i][j]), y, lastx, lasty + stepy * grid[lasti][lastj] / (grid[lasti][lastj] - grid[lasti][j]));
+                    break;
+                default:
+                    break;
+            }
+            lasty = y;
+            y += stepy;
+            lastj = j;
+        }
+        lastx = x;
+        x += stepx;
+        lasti = i;
+    }
     expression();
+
 
 }
 
