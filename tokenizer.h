@@ -51,7 +51,8 @@ typedef enum {
     n_expression,
     n_term,
     n_value,
-    n_procedure
+    n_procedure,
+    s_plot_exp
     } token_type_enum;
 
 typedef double (*dfuncd)(double);

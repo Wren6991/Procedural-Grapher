@@ -1,7 +1,9 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <cmath>
 #include "parser.h"
+#include "draw.h"
 
 typedef struct g_data {
     double left;
@@ -23,7 +25,11 @@ class interpreter
 
     void evaluate(block*);
     void evaluate(statement*);
-    double evaluate(expression);
+    double evaluate(expression*);
+    double evaluate(sum*);
+    double evaluate(term*);
+    double evaluate(value*);
+    void evaluate(explicitplot*);
 
-    interpreter (block*);
+    interpreter (block*, std::map<std::string, dfuncd>, g_data);
 };

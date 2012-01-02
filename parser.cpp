@@ -23,6 +23,7 @@
 //  strings/ other values.
 //  3d
 //  memoize everything! have an array of values from 1...ntokens plus bools for fixed and eval'd, and check list before eval'ing an expression / w/e! (fixed could propagate up one level each evaluation - eprs that are evaluated lots are perfectly optimised, others less so.)
+//  shunting yard?
 ///////////<Won't>/////////////
 
 extern std::string token_type_names[];
@@ -113,7 +114,7 @@ term* parser::trm()
 {
     term* t = new term;
     t->values.push_back(val());
-    while(accept(t_times)||accept(t_minus))
+    while(accept(t_times)||accept(t_divide))
     {
         t->operators.push_back(last.type);
         t->values.push_back(val());
@@ -145,6 +146,12 @@ value* parser::val()
         expect(t_rparen);
         v->funccall = f;
     }
+    else if (accept(t_lparen))
+    {
+        v->type = n_expression;
+        v->expr = expr();
+        expect(t_rparen);
+    }
     else
         throw(n_value);
     if(accept(t_exp))
@@ -152,6 +159,8 @@ value* parser::val()
         v->expd = true;
         v->exponent = val();
     }
+    else
+        v->expd = false;
     return v;
 }
 
@@ -176,17 +185,20 @@ statement* parser::stat()
         expect(t_do);
         w->whileblock = blk();
         s->stat.whilestat = w;
+        expect(t_end);
     }
     else if (accept(t_if))
     {
         s->type = t_if;
         ifstatement *i = new ifstatement;
         i->cond = expr();
+        expect(t_then);
         i->ifblock = blk();
         while(accept(t_elseif))
         {
             ifstatement *elseif = new ifstatement;
             elseif->cond = expr();
+            expect(t_then);
             elseif->ifblock = blk();
             i->elseifs.push_back(elseif);
         }
@@ -195,6 +207,8 @@ statement* parser::stat()
             i->haselse = true;
             i->elseblock = blk();
         }
+        else
+            i->haselse = false;
         expect(t_end);
         s->stat.ifstat = i;
     }
@@ -202,14 +216,54 @@ statement* parser::stat()
     {
         s->type = t_for;
         forstatement *f = new forstatement;
+        expect(t_id);
         f->id = last.value;
         expect(t_equals);
         f->a = expr();
         expect(t_to);
         f->b = expr();
+        expect(t_do);
         f->forblock = blk();
         expect(t_end);
         s->stat.forstat = f;
+    }
+    else if (accept(t_func))
+    {
+        s->type = t_func;
+        functioncall *f = new functioncall;
+        f->name = last.value;
+        expect(t_lparen);
+        f->arg = expr();
+        expect(t_rparen);
+        s->stat.funcstat = f;
+    }
+    else if (accept(t_id))
+    {
+        std::string id = last.value;
+        if (accept(t_equals))
+        {
+            s->type = s_plot_exp;
+            explicitplot *p = new explicitplot;
+            p->rangevar = id;
+            p->expr = expr();
+            s->stat.expplot = p;
+        }
+        else if (accept(t_lparen))
+        {
+            procedurecall *p = new procedurecall;
+            p->name = id;
+            while (!accept(t_rparen))
+            {
+                p->args.push_back(expr());
+                if(!accept(t_comma))
+                {
+                    expect(t_rparen);
+                    break;
+                }
+            }
+            s->stat.procstat = p;
+        }
+        else throw(t_equals);
     }
     else
     {
@@ -235,26 +289,10 @@ block* parser::blk()
     }
     return b;
 }
-
-/*void parser::explicitplot(std::string rangevar)
-{
-}
-
-void parser::implicitplot(int exprindex)
-{
-}
-void parser::jumpto(int target)
-{
-
-}
-
-procedure::procedure()
-{
-
-}
+/*
 procedure::procedure(int entrypoint_, std::vector <std::string> args_)
 {
     entrypoint = entrypoint_;
     args = args_;
 }
-*/
+//*/

@@ -19,6 +19,7 @@
 
 #include "tokenizer.h"
 #include "parser.h"
+#include "interpreter.h"
 #include <iostream>
 #include <stdlib.h>
 #include <wx/glcanvas.h>
@@ -74,7 +75,8 @@ std::string token_type_names[] = {
     "expression",
     "expression",
     "value",
-    "defined procedure"
+    "defined procedure",
+    "explicit plot"
 };
 
 //helper functions
@@ -204,18 +206,20 @@ void proceduralgrapherDialog::parse()
     txtOutput->SetValue("");
 
     initgl();
-
     glColor4f(1, 0, 0, 1);
 
     txtOutput->SetValue("");
-   parser p(tokens, funcs, parserdata);
+    parser p(tokens, funcs);
+    block* program;
 
     try {
-        p.block();
+        program = p.blk();
+        interpreter interp(program, funcs, parserdata);
+        interp.evaluate(interp.program);
     }
     catch (token_type_enum t)
     {
-        (*txtOutput) << "Error: expected " <<token_type_names[t] << " near \"" << p.t.value << "\" (pos. " << p.tindex << ")\n";
+        (*txtOutput) << "Error: expected " << token_type_names[t] << " near \"" << p.t.value << "\" (pos. " << p.tindex << ")\n";
     }
     donedrawing = true;
     endgl();
