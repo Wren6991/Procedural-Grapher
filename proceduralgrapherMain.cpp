@@ -231,6 +231,10 @@ void proceduralgrapherDialog::parse()
     {
         (*txtOutput) << "Error: expected " << token_type_names[t] << " near \"" << p.t.value << "\" (pos. " << static_cast <int> (p.tindex) << ")\n";
     }
+    catch (error e)
+    {
+        (*txtOutput) << e.errstring << "\n";
+    }
     donedrawing = true;
     endgl();
     (*OutputBox) << parserdata.left << ", " << parserdata.right << "\n" << parserdata.top << ", " << parserdata.bottom << "\nComplete.";

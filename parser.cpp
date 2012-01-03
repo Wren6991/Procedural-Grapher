@@ -18,13 +18,20 @@
 //  settings
 //  local variables - either stack of maps, or store original values in a vector at call time and retore after return.
 //  multiple assignments
+//  resizing
+//  delete procedures in interpreter destructor
 ///////////<Could>/////////////
 //  parametrics
 //  strings/ other values.
 //  3d
 //  memoize everything! have an array of values from 1...ntokens plus bools for fixed and eval'd, and check list before eval'ing an expression / w/e! (fixed could propagate up one level each evaluation - eprs that are evaluated lots are perfectly optimised, others less so.)
 //  shunting yard?
+//  fixed expressions (evaluate at parse time, then never again)
 ///////////<Won't>/////////////
+//  I should probably put something in here
+//  solve p v ¬p
+//  how about that
+///////////////////////////////
 
 
 parser::parser(std::vector <token> tokens_)
@@ -141,8 +148,28 @@ value* parser::val()
     v->negative = accept(t_minus);
     if (accept(t_id))
     {
-        v->type = t_id;
-        v->var = last.value;
+        std::string id = last.value;
+        if (accept(t_lparen))
+        {
+            v->type = n_procedure;
+            procedurecall *p = new procedurecall;
+            p->name = id;
+            while (!accept(t_rparen))
+            {
+                p->args.push_back(expr());
+                if(!accept(t_comma))
+                {
+                    expect(t_rparen);
+                    break;
+                }
+            }
+            v->proccall = p;
+        }
+        else
+        {
+            v->type = t_id;
+            v->var = id;
+        }
     }
     else if (accept(t_number))
     {
@@ -301,6 +328,35 @@ statement* parser::stat()
         p->hasineq = accepted_ineq;
         s->stat.impplot = p;
     }
+    else if (accept(t_def))
+    {
+        s->type = t_def;
+        expect(t_id);
+        defstatement *d = new defstatement;
+
+        d->name = last.value;
+        expect(t_lparen);
+        while (!accept(t_rparen))
+        {
+            expect(t_id);
+            d->args.push_back(last.value);
+            if(!accept(t_comma))
+            {
+                expect(t_rparen);
+                break;
+            }
+        }
+        d->entrypoint = blk();
+        expect(t_end);
+        s->stat.defstat = d;
+    }
+    else if (accept(t_return))
+    {
+        s->type = t_return;
+        returnstatement *r = new returnstatement;
+        r->expr = expr();
+        s->stat.returnstat = r;
+    }
     else
     {
         s->type = t_eof;
@@ -333,14 +389,6 @@ void parser::jumpto(int target)
     gettoken();
 }
 
-/*
-procedure::procedure(int entrypoint_, std::vector <std::string> args_)
-{
-    entrypoint = entrypoint_;
-    args = args_;
-}
-//*/
-
 block::~block()
 {
     for (unsigned int i = 0; i < statements.size(); i++)
@@ -364,7 +412,7 @@ statement::~statement()
             delete stat.defstat;
             break;
         case n_procedure:
-            //delete stat.procstat;
+            delete stat.procstat;
             break;
         case t_func:
             delete stat.funcstat;
@@ -378,6 +426,8 @@ statement::~statement()
         case s_plot_imp:
             delete stat.impplot;
             break;
+        case t_return:
+            delete stat.returnstat;
         default:
             break;
     }
@@ -436,7 +486,13 @@ ifstatement::~ifstatement()
     delete ifblock;
     for (unsigned int i = 0; i < elseifs.size(); i++)
         delete elseifs[i];
-    delete elseblock;
+    if (haselse)
+        delete elseblock;
+}
+
+returnstatement::~returnstatement()
+{
+    delete expr;
 }
 
 expression::~expression()
@@ -482,10 +538,5 @@ value::~value()
     }
     if (expd)
         delete exponent;
-}
-
-procedure::~procedure()
-{
-    delete blk;
 }
 

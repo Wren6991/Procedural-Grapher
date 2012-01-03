@@ -80,6 +80,42 @@ void interpreter::evaluate(statement* stat)
         case s_plot_imp:
             evaluate(stat->stat.impplot);
             break;
+        case t_def:
+            procedures[stat->stat.defstat->name] =  new procedure(stat->stat.defstat->args, stat->stat.defstat->entrypoint);
+            break;
+        case n_procedure:
+            if (procedures.find(stat->stat.procstat->name) == procedures.end()) //not defined
+                throw(n_procedure);
+            proc =  procedures[stat->stat.procstat->name];
+
+            if(stat->stat.procstat->args.size() == proc->args.size())
+            {
+                for (unsigned int i = 0; i < proc->args.size(); i++)
+                {
+                    vars[proc->args[i]] = evaluate(stat->stat.procstat->args[i]);
+                }
+                try
+                {
+                    evaluate(proc->entrypoint);
+                }
+                catch (token_type_enum t)
+                {
+                    if (t != t_return)
+                        throw(t);
+                }
+            }
+            else
+            {
+                if (stat->stat.procstat->args.size() > proc->args.size())
+                    throw(error(std::string("Error: too many arguments to procedure ") + stat->stat.procstat->name));
+                else
+                    throw(error(std::string("Error: too few arguments to procedure ") + stat->stat.procstat->name));
+            }
+            break;
+        case t_return:
+            returnvalue = evaluate(stat->stat.returnstat->expr);
+            throw(t_return);
+            break;
         default:
             throw(stat->type);
     }
@@ -169,6 +205,36 @@ double interpreter::evaluate(value *v)
         case n_expression:
             n = evaluate(v->expr);
             break;
+        case n_procedure:
+            if (procedures.find(v->proccall->name) == procedures.end()) //not defined
+                throw(n_procedure);
+            proc =  procedures[v->proccall->name];
+
+            if(v->proccall->args.size() == proc->args.size())
+            {
+                for (unsigned int i = 0; i < proc->args.size(); i++)
+                {
+                    vars[proc->args[i]] = evaluate(v->proccall->args[i]);
+                }
+                try
+                {
+                    evaluate(proc->entrypoint);
+                }
+                catch (token_type_enum t)
+                {
+                    if (t != t_return)
+                        throw(t);
+                    n = returnvalue;
+                }
+            }
+            else
+            {
+                if (v->proccall->args.size() > proc->args.size())
+                    throw(error(std::string("Error: too many arguments to procedure ") + v->proccall->name));
+                else
+                    throw(error(std::string("Error: too few arguments to procedure ") + v->proccall->name));
+            }
+            break;
         default:
             n = 0;
             break;
@@ -245,9 +311,9 @@ void interpreter::evaluate(implicitplot* relation)
 {
     bool equalsonly = relation->haseq && !relation->hasineq;
     int ncells = data.detail / 2 + 1;
-    double** grid = new double*[ncells + 1];
+    double** grid = new double*[ncells + 2];
     for (int i = 0; i <= ncells; i++)
-        grid[i] = new double[ncells + 1];
+        grid[i] = new double[ncells + 2];
     double stepx = (data.right - data.left) / ncells;
     double stepy = (data.top - data.bottom) / ncells;
     double x, y;
@@ -461,4 +527,23 @@ void interpreter::evaluate(implicitplot* relation)
         }
     }
     getnextcolor();
+}
+
+procedure::procedure(){}
+
+procedure::procedure(std::vector <std::string> args_, block* entrypoint_)
+{
+    args = args_;
+    entrypoint = entrypoint_;
+}
+
+
+procedure::~procedure()
+{
+    delete entrypoint;
+}
+
+error::error(std::string errstring_)
+{
+    errstring = errstring_;
 }

@@ -9,14 +9,6 @@ class procedurecall;
 class functioncall;
 class expression;
 
-class procedure
-{
-    public:
-    std::vector <std::string> args;
-    block* blk;
-    ~procedure();
-};
-
 class value
 {
     public:
@@ -151,6 +143,13 @@ class implicitplot
     ~implicitplot();
 };
 
+class returnstatement
+{
+    public:
+    expression* expr;
+    ~returnstatement();
+};
+
 class statement
 {
     public:
@@ -165,6 +164,7 @@ class statement
         assignment* assignstat;
         explicitplot* expplot;
         implicitplot* impplot;
+        returnstatement* returnstat;
         } stat;
     ~statement();
 };

@@ -5,6 +5,13 @@
 #include "parser.h"
 #include "draw.h"
 
+class error
+{
+    public:
+    std::string errstring;
+    error(std::string);
+};
+
 typedef struct g_data {
     double left;
     double right;
@@ -16,14 +23,25 @@ typedef struct g_data {
     unsigned int colorindex;
     } g_data;
 
+class procedure
+{
+    public:
+    std::vector <std::string> args;
+    block* entrypoint;
+    procedure();
+    procedure(std::vector <std::string>, block*);
+    ~procedure();
+};
+
 class interpreter
 {
     public:
     block* program;
-    std::vector <block*> stack;
+    procedure* proc;
+    double returnvalue;
     std::map<std::string, double> vars;
     std::map<std::string, dfuncd> funcs;
-    std::map<std::string, procedure> procedures;
+    std::map<std::string, procedure*> procedures;
     g_data data;
     bool receivedequals;
     bool receivedinequal;
@@ -37,6 +55,7 @@ class interpreter
     double evaluate(value*);
     void evaluate(explicitplot*);
     void evaluate(implicitplot*);
+
 
     interpreter (block*, std::map<std::string, dfuncd>, g_data);
     ~interpreter();
