@@ -14,6 +14,7 @@ class procedure
     public:
     std::vector <std::string> args;
     block* blk;
+    ~procedure();
 };
 
 class value
@@ -30,6 +31,7 @@ class value
 
     bool expd;
     value* exponent;
+    ~value();
 };
 
 class term
@@ -39,6 +41,7 @@ class term
     double nvalue;
     std::vector <value*> values;
     std::vector <token_type_enum> operators;
+    ~term();
 };
 
 class sum
@@ -48,6 +51,7 @@ class sum
     double nvalue;
     std::vector <term*> terms;
     std::vector <token_type_enum> operators;
+    ~sum();
 };
 
 class comparison
@@ -58,12 +62,14 @@ class comparison
     sum *a;
     token_type_enum oper;
     sum *b;
+    ~comparison();
 };
 
 class expression
 {
     public:
     comparison* a;
+    ~expression();
 };
 
 class ifstatement
@@ -74,6 +80,7 @@ class ifstatement
     std::vector <ifstatement*> elseifs;
     bool haselse;
     block* elseblock;
+    ~ifstatement();
 };
 
 class whilestatement
@@ -81,6 +88,7 @@ class whilestatement
     public:
     expression* cond;
     block* whileblock;
+    ~whilestatement();
 };
 
 class forstatement
@@ -90,6 +98,7 @@ class forstatement
     expression* a;
     expression* b;
     block* forblock;
+    ~forstatement();
 };
 
 class defstatement
@@ -98,6 +107,7 @@ class defstatement
     std::string name;
     std::vector <std::string> args;
     block* entrypoint;
+    ~defstatement();
 };
 
 class procedurecall
@@ -105,6 +115,7 @@ class procedurecall
     public:
     std::string name;
     std::vector <expression*> args;
+    ~procedurecall();
 };
 
 class functioncall
@@ -112,6 +123,7 @@ class functioncall
     public:
     std::string name;
     expression* arg;
+    ~functioncall();
 };
 
 class assignment
@@ -119,6 +131,7 @@ class assignment
     public:
     std::string id;
     expression* rvalue;
+    ~assignment();
 };
 
 class explicitplot
@@ -126,12 +139,14 @@ class explicitplot
     public:
     std::string rangevar;
     expression* expr;
+    ~explicitplot();
 };
 
 class implicitplot
 {
     public:
-    expression* exp;
+    expression* expr;
+    ~implicitplot();
 };
 
 class statement
@@ -149,12 +164,14 @@ class statement
         explicitplot* expplot;
         implicitplot* impplot;
         } stat;
+    ~statement();
 };
 
 class block
 {
     public:
     std::vector <statement*> statements;
+    ~block();
 };
 
 class parser

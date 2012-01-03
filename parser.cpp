@@ -250,6 +250,7 @@ statement* parser::stat()
         }
         else if (accept(t_lparen))
         {
+            s->type = n_procedure;
             procedurecall *p = new procedurecall;
             p->name = id;
             while (!accept(t_rparen))
@@ -267,6 +268,7 @@ statement* parser::stat()
     }
     else
     {
+        s->type = t_eof;
         delete s;
         throw(e_nostatement);
     }
@@ -296,3 +298,152 @@ procedure::procedure(int entrypoint_, std::vector <std::string> args_)
     args = args_;
 }
 //*/
+
+block::~block()
+{
+    for (int i = 0; i < statements.size(); i++)
+        delete statements[i];
+}
+
+statement::~statement()
+{
+    switch (type)
+    {
+        case t_if:
+            delete stat.ifstat;
+            break;
+        case t_while:
+            delete stat.whilestat;
+            break;
+        case t_for:
+            delete stat.forstat;
+            break;
+        case t_def:
+            delete stat.defstat;
+            break;
+        case n_procedure:
+            //delete stat.procstat;
+            break;
+        case t_func:
+            delete stat.funcstat;
+            break;
+        case t_let:
+            delete stat.assignstat;
+            break;
+        case s_plot_exp:
+            delete stat.expplot;
+            break;
+        case s_plot_imp:
+            delete stat.impplot;
+            break;
+        default:
+            break;
+    }
+}
+
+implicitplot::~implicitplot()
+{
+    delete expr;
+}
+
+explicitplot::~explicitplot()
+{
+    delete expr;
+}
+
+assignment::~assignment()
+{
+    delete rvalue;
+}
+
+functioncall::~functioncall()
+{
+
+    delete arg;
+}
+
+procedurecall::~procedurecall()
+{
+    for (int i = 0; i < args.size(); i++)
+        delete args[i];
+}
+
+defstatement::~defstatement()
+{
+    //for (int i = 0; i < args.size(); i++)
+        //delete args[i];
+    delete entrypoint;
+}
+
+forstatement::~forstatement()
+{
+    delete a;
+    delete b;
+    delete forblock;
+}
+
+whilestatement::~whilestatement()
+{
+    delete cond;
+    delete whileblock;
+}
+
+ifstatement::~ifstatement()
+{
+    delete cond;
+    delete ifblock;
+    for (int i = 0; i < elseifs.size(); i++)
+        delete elseifs[i];
+    delete elseblock;
+}
+
+expression::~expression()
+{
+    delete a;
+}
+
+comparison::~comparison()
+{
+    delete a;
+    if (oper != t_eof)
+        delete b;
+}
+
+sum::~sum()
+{
+    for (int i = 0; i < terms.size(); i++)
+        delete terms[i];
+}
+
+term::~term()
+{
+    for (int i = 0; i < values.size(); i++)
+        delete values[i];
+}
+
+value::~value()
+{
+    switch(type)
+    {
+        case t_number:
+            break;
+        case t_id:
+            break;
+        case t_func:
+            delete funccall;
+            break;
+        case n_procedure:
+            delete proccall;
+            break;
+        default:
+            break;
+    }
+    if (expd)
+        delete exponent;
+}
+
+procedure::~procedure()
+{
+    delete blk;
+}
+

@@ -8,6 +8,11 @@ interpreter::interpreter(block* program_, std::map<std::string, dfuncd> funcs_, 
     data = data_;
 }
 
+interpreter::~interpreter()
+{
+    delete program;
+}
+
 void interpreter::evaluate(block* blk)
 {
     for(int i = 0; i < blk->statements.size(); i++)
@@ -174,25 +179,22 @@ void interpreter::evaluate(explicitplot* relation)
             line2(lastx, lasty, x, y);
         }
     }
-    /*else if (relation->rangevar == "x")
+    else if (relation->rangevar == "x")
     {
         double x, y, lastx, lasty, step;
         y = data.bottom;
         step = (data.top - data.bottom)/data.detail;
         vars["y"] = y;
-        x = expression();
-        jumpto(expressionstart);
+        x = evaluate(relation->expr);
         while(y < data.top + step)
         {
             lastx = x;
             lasty = y;
             y += step;
             vars["y"] = y;
-            x = expression();
+            x = evaluate(relation->expr);
             line2(lastx, lasty, x, y);
-            jumpto(expressionstart);
         }
-        expression();
     }
     else if (relation->rangevar == "r")
     {
@@ -200,20 +202,17 @@ void interpreter::evaluate(explicitplot* relation)
         theta = -10;
         step = 10.0/data.detail;
         vars["theta"] = theta;
-        r = expression();
-        jumpto(expressionstart);
+        r = evaluate(relation->expr);
         while(theta < 10 + step)
         {
             lastr = r;
             lasttheta = theta;
             theta += step;
             vars["theta"] = theta;
-            r = expression();
+            r = evaluate(relation->expr);
             line2(lastr * cos(lasttheta), lastr * sin(lasttheta), r * cos(theta), r * sin(theta));
-            jumpto(expressionstart);
         }
-        expression();
-    }*/
+    }
     else
     {
         throw (e_ordinate);

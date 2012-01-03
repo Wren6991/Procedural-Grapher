@@ -32,4 +32,5 @@ class interpreter
     void evaluate(explicitplot*);
 
     interpreter (block*, std::map<std::string, dfuncd>, g_data);
+    ~interpreter();
 };

@@ -52,7 +52,8 @@ typedef enum {
     n_term,
     n_value,
     n_procedure,
-    s_plot_exp
+    s_plot_exp,
+    s_plot_imp
     } token_type_enum;
 
 typedef double (*dfuncd)(double);

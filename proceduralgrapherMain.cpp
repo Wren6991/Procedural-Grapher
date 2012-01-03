@@ -76,7 +76,8 @@ std::string token_type_names[] = {
     "expression",
     "value",
     "defined procedure",
-    "explicit plot"
+    "explicit plot",
+    "implicit plot"
 };
 
 //helper functions
