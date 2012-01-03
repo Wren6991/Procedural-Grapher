@@ -145,6 +145,8 @@ class explicitplot
 class implicitplot
 {
     public:
+    bool haseq;
+    bool hasineq;
     expression* expr;
     ~implicitplot();
 };
@@ -178,9 +180,11 @@ class parser
 {
     public:
     std::vector <token> tokens;
-    int tindex;
+    unsigned int tindex;
     token t;
     token last;
+    bool accepted_equals;
+    bool accepted_ineq;     //for parsing implicit plots :)
 
     std::map<std::string, dfuncd> funcs;
     void gettoken();
@@ -188,6 +192,7 @@ class parser
     parser(std::vector <token>, std::map <std::string, dfuncd>);
     bool accept(token_type_enum);
     void expect(token_type_enum);
+    void jumpto(int);
     expression* expr();
     comparison* comp();
     sum* sm();

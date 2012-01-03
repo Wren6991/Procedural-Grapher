@@ -167,7 +167,15 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     parserdata.right = 1;
     parserdata.top = 1;
     parserdata.bottom = -1;
-    parserdata.detail = 50;
+    parserdata.detail = 100;
+    parserdata.colors.push_back(colorf(1, 0, 0));
+    parserdata.colors.push_back(colorf(0, 1, 0));
+    parserdata.colors.push_back(colorf(0, 0, 1));
+    parserdata.colors.push_back(colorf(1, 0.5, 0));
+    parserdata.colors.push_back(colorf(0.8, 0, 0.8));
+    parserdata.colors.push_back(colorf(0, 0.8, 0.8));
+    parserdata.colorindex = 0;
+    parserdata.currentcolor = parserdata.colors[0];
     leftdown = false;
     middledown = false;
     funcs["print"] = dddprint;
@@ -181,6 +189,7 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     funcs["abs"] = fabs;
     funcs["floor"] = floor;
     funcs["ceil"] = ceil;
+    funcs["sqrt"] = sqrt;
     tokens = tokenize(std::string(txtOutput->GetValue().ToAscii()), funcs);
 }
 
@@ -220,7 +229,7 @@ void proceduralgrapherDialog::parse()
     }
     catch (token_type_enum t)
     {
-        (*txtOutput) << "Error: expected " << token_type_names[t] << " near \"" << p.t.value << "\" (pos. " << p.tindex << ")\n";
+        (*txtOutput) << "Error: expected " << token_type_names[t] << " near \"" << p.t.value << "\" (pos. " << static_cast <int> (p.tindex) << ")\n";
     }
     donedrawing = true;
     endgl();
@@ -262,6 +271,7 @@ void proceduralgrapherDialog::initgl()
 
     glEnable(GL_LINE_SMOOTH);
     glHint(GL_LINE_SMOOTH, GL_NICEST);
+    glEnable(GL_POINT_SMOOTH);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -294,50 +304,6 @@ void proceduralgrapherDialog::endgl()
 void proceduralgrapherDialog::OntxtOutputText(wxCommandEvent& event)
 {
 
-}
-
-void line2(float ax, float ay, float bx, float by)
-{
-    glBegin(GL_LINES);
-    glVertex3f(ax, ay, -1);
-    glVertex3f(bx, by, -1);
-    glEnd();
-}
-
-void point2(float x, float y)
-{
-    glBegin(GL_POINT);
-    glVertex3f(x, y, -1);
-    glEnd();
-}
-
-void triangle2(float ax, float ay, float bx, float by, float cx, float cy)
-{
-    glBegin(GL_POLYGON);
-    glVertex3f(ax, ay, -1);
-    glVertex3f(bx, by, -1);
-    glVertex3f(cx, cy, -1);
-    glEnd();
-}
-
-void poly2(float verts[], int count)
-{
-    glBegin(GL_POLYGON);
-    for(int i = 0; i < count * 2; i+= 2)
-    {
-        glVertex3f(verts[i], verts[i + 1], -1);
-    }
-    glEnd();
-}
-
-void color3(float r, float g, float b)
-{
-    glColor3f(r, g, b);
-}
-
-void color4(float r, float g, float b, float a)
-{
-    glColor4f(r, g, b, a);
 }
 
 void proceduralgrapherDialog::OnGLCanvas1LeftDown(wxMouseEvent& event)

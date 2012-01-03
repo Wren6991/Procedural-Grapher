@@ -183,7 +183,7 @@ std::vector <token> tokenize(std::string str)
     lexed:
 
     std::cout << "\n";
-    for (int i = 0; i < tokens.size(); i++)
+    for (unsigned int i = 0; i < tokens.size(); i++)
     {
         std::cout << token_type_names[tokens[i].type] << ": " << tokens[i].value << "\n";
     }
@@ -194,7 +194,7 @@ std::vector <token> tokenize(std::string str)
 std::vector <token> tokenize(std::string str, std::map <std::string, dfuncd> funcs)
 {
     std::vector<token> tokens = tokenize(str);
-    for (int i = 0; i < tokens.size(); i++)
+    for (unsigned int i = 0; i < tokens.size(); i++)
     {
         if (tokens[i].type == t_id)
             if (funcs.find(tokens[i].value) != funcs.end())

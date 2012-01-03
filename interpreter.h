@@ -11,6 +11,9 @@ typedef struct g_data {
     double top;
     double bottom;
     int detail;
+    std::vector <colorf> colors;
+    colorf currentcolor;
+    unsigned int colorindex;
     } g_data;
 
 class interpreter
@@ -22,7 +25,10 @@ class interpreter
     std::map<std::string, dfuncd> funcs;
     std::map<std::string, procedure> procedures;
     g_data data;
+    bool receivedequals;
+    bool receivedinequal;
 
+    void getnextcolor();
     void evaluate(block*);
     void evaluate(statement*);
     double evaluate(expression*);
@@ -30,6 +36,7 @@ class interpreter
     double evaluate(term*);
     double evaluate(value*);
     void evaluate(explicitplot*);
+    void evaluate(implicitplot*);
 
     interpreter (block*, std::map<std::string, dfuncd>, g_data);
     ~interpreter();

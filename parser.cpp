@@ -26,7 +26,6 @@
 //  shunting yard?
 ///////////<Won't>/////////////
 
-extern std::string token_type_names[];
 
 parser::parser(std::vector <token> tokens_)
 {
@@ -88,8 +87,22 @@ comparison* parser::comp()
 {
     comparison* c = new comparison;
     c->a = sm();
-    if (accept(t_equals)||accept(t_lessthan)||accept(t_greaterthan)||accept(t_lteq)||accept(t_gteq))
+    if (accept(t_equals))
     {
+        accepted_equals = true;
+        c->oper = last.type;
+        c->b = sm();
+    }
+    else if (accept(t_lessthan)||accept(t_greaterthan))
+    {
+        accepted_ineq = true;
+        c->oper = last.type;
+        c->b = sm();
+    }
+    else if (accept(t_lteq)||accept(t_gteq))
+    {
+        accepted_equals = true;
+        accepted_ineq = true;
         c->oper = last.type;
         c->b = sm();
     }
@@ -134,7 +147,7 @@ value* parser::val()
     else if (accept(t_number))
     {
         v->type = t_number;
-        v->n = atoi(last.value.c_str());
+        v->n = atof(last.value.c_str());
     }
     else if (accept(t_func))
     {
@@ -264,7 +277,29 @@ statement* parser::stat()
             }
             s->stat.procstat = p;
         }
-        else throw(t_equals);
+        else
+        {
+            s->type = s_plot_imp;
+            implicitplot *p = new implicitplot;
+            accepted_equals = false;
+            accepted_ineq = false;
+            jumpto(tindex - 1);     //jump back to the id we accepted
+            p->expr = expr();       //parse an expression, stuff it into the plot statement
+            p->haseq = accepted_equals;
+            p->hasineq = accepted_ineq;
+            s->stat.impplot = p;
+        }
+    }
+    else if (accept(t_plot))
+    {
+        s->type = s_plot_imp;
+        implicitplot *p = new implicitplot;
+        accepted_equals = false;
+        accepted_ineq = false;
+        p->expr = expr();       //parse an expression, stuff it into the plot statement
+        p->haseq = accepted_equals;
+        p->hasineq = accepted_ineq;
+        s->stat.impplot = p;
     }
     else
     {
@@ -291,6 +326,13 @@ block* parser::blk()
     }
     return b;
 }
+
+void parser::jumpto(int target)
+{
+    tindex = target - 1;    //tindex points to token _about_to_be_ read.
+    gettoken();
+}
+
 /*
 procedure::procedure(int entrypoint_, std::vector <std::string> args_)
 {
@@ -301,7 +343,7 @@ procedure::procedure(int entrypoint_, std::vector <std::string> args_)
 
 block::~block()
 {
-    for (int i = 0; i < statements.size(); i++)
+    for (unsigned int i = 0; i < statements.size(); i++)
         delete statements[i];
 }
 
@@ -364,7 +406,7 @@ functioncall::~functioncall()
 
 procedurecall::~procedurecall()
 {
-    for (int i = 0; i < args.size(); i++)
+    for (unsigned int i = 0; i < args.size(); i++)
         delete args[i];
 }
 
@@ -392,7 +434,7 @@ ifstatement::~ifstatement()
 {
     delete cond;
     delete ifblock;
-    for (int i = 0; i < elseifs.size(); i++)
+    for (unsigned int i = 0; i < elseifs.size(); i++)
         delete elseifs[i];
     delete elseblock;
 }
@@ -411,13 +453,13 @@ comparison::~comparison()
 
 sum::~sum()
 {
-    for (int i = 0; i < terms.size(); i++)
+    for (unsigned int i = 0; i < terms.size(); i++)
         delete terms[i];
 }
 
 term::~term()
 {
-    for (int i = 0; i < values.size(); i++)
+    for (unsigned int i = 0; i < values.size(); i++)
         delete values[i];
 }
 
