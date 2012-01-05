@@ -1,6 +1,5 @@
 #include "interpreter.h"
 
-
 interpreter::interpreter(block* program_, std::map<std::string, dfuncd> funcs_, g_data data_)
 {
     program = program_;
@@ -121,37 +120,60 @@ void interpreter::evaluate(statement* stat)
     }
 }
 
-double interpreter::evaluate(expression *exp)
+double min(double a, double b)
 {
-    double total = evaluate(exp->a->a);
-    switch (exp->a->oper)
+    return a < b ? a : b;
+}
+
+double max(double a, double b)
+{
+    return a > b ? a : b;
+}
+
+double interpreter::evaluate(expression *expr)
+{
+    double total = evaluate(expr->comparisons[0]);
+    for(unsigned int i = 0; i < expr->operators.size(); i++)
+    {
+        if (expr->operators[i] == t_and)
+            total = min(total, evaluate(expr->comparisons[i + 1]));
+        else
+            total = max(total, evaluate(expr->comparisons[i + 1]));
+    }
+    return total;
+}
+
+double interpreter::evaluate(comparison *comp)
+{
+    double total = evaluate(comp->a);
+    switch (comp->oper)
     {
         case t_eof:
             break;
         case t_lessthan:
-            total = evaluate(exp->a->b) - total;
+            total = evaluate(comp->b) - total;
             receivedinequal = true;
             break;
         case t_greaterthan:
-            total = total - evaluate(exp->a->b);
+            total = total - evaluate(comp->b);
             receivedinequal = true;
             break;
         case t_lteq:
-            total = evaluate(exp->a->b) - total;
+            total = evaluate(comp->b) - total;
             if (total == 0)
                 total = 0.00001;
             receivedinequal = true;
             receivedequals = true;
             break;
         case t_gteq:
-            total = total - evaluate(exp->a->b);
+            total = total - evaluate(comp->b);
             if (total == 0)
                 total = 0.00001;
             receivedinequal = true;
             receivedequals = true;
             break;
         case t_equals:
-            total = evaluate(exp->a->b) - total - 100000;
+            total = evaluate(comp->b) - total - 100000;
             if(total == -100000)
                 total = 0.00001;
             receivedequals = true;
@@ -235,12 +257,19 @@ double interpreter::evaluate(value *v)
                     throw(error(std::string("Error: too few arguments to procedure ") + v->proccall->name));
             }
             break;
+        case t_dif:
+            n = evaluate(v->b);
+            temp = vars[v->var];
+            vars[v->var] = temp + 0.00001;
+            n = (evaluate(v->b) - n) / 0.00001;
+            vars[v->var] = temp;
+            break;
         default:
             n = 0;
             break;
     }
     if (v->expd)
-        n = pow(n, evaluate(v->exponent));
+        n = pow(n, evaluate(v->b));
     if (v->negative)
         n = -n;
     return n;
@@ -311,17 +340,17 @@ void interpreter::evaluate(implicitplot* relation)
 {
     bool equalsonly = relation->haseq && !relation->hasineq;
     int ncells = data.detail / 2 + 1;
-    double** grid = new double*[ncells + 2];
+    double** grid = new double*[ncells + 1];
     for (int i = 0; i <= ncells; i++)
-        grid[i] = new double[ncells + 2];
-    double stepx = (data.right - data.left) / ncells;
-    double stepy = (data.top - data.bottom) / ncells;
+        grid[i] = new double[ncells + 1];
+    double stepx = (data.right - data.left) / (ncells - 1);
+    double stepy = (data.top - data.bottom) / (ncells - 1);
     double x, y;
-    x = data.left;
+    x = floor(data.left/stepx) * stepx;
     for (int i = 0; i <= ncells; i++)
     {
         vars["x"] = x;
-        y = data.bottom;
+        y = floor(data.bottom/stepy) * stepy;
         for(int j = 0; j <= ncells; j++)
         {
             vars["y"] = y;
@@ -332,7 +361,7 @@ void interpreter::evaluate(implicitplot* relation)
         }
         x += stepx;
     }
-    double lastx = data.left;
+    double lastx = floor(data.left/stepx) * stepx;
     x = lastx + stepx;
     int lasti = 0;
     double lasty;
@@ -343,13 +372,12 @@ void interpreter::evaluate(implicitplot* relation)
         for (int i = 1; i <= ncells; i++)
         {
             lastj = 0;
-            lasty = data.bottom;
+            lasty = floor(data.bottom/stepy) * stepy;
             y = lasty + stepy;
             for(int j = 1; j <= ncells; j++)
             {
                 {
-                    setcolor(data.currentcolor, grid[i][j]);
-                    quad2(lastx, lasty, lastx, y, x, y, x, lasty);
+                    rect2_4a(lastx, lasty, x, y, data.currentcolor, grid[lasti][lastj], grid[i][lastj], grid[lasti][j], grid[i][j]);
                 }
                 lasty = y;
                 y += stepy;
@@ -366,7 +394,7 @@ void interpreter::evaluate(implicitplot* relation)
         for (int i = 1; i <= ncells; i++)
         {
             lastj = 0;
-            lasty = data.bottom;
+            lasty = floor(data.bottom/stepy) * stepy;
             y = lasty + stepy;
             for(int j = 1; j <= ncells; j++)
             {
@@ -449,7 +477,7 @@ void interpreter::evaluate(implicitplot* relation)
         for (int i = 1; i <= ncells; i++)
         {
             lastj = 0;
-            lasty = data.bottom;
+            lasty = floor(data.bottom/stepy) * stepy;
             y = lasty + stepy;
             for(int j = 1; j <= ncells; j++)
             {
@@ -527,6 +555,9 @@ void interpreter::evaluate(implicitplot* relation)
         }
     }
     getnextcolor();
+    for (int i = 0; i <= ncells; i++)
+        delete grid[i];
+    delete grid;
 }
 
 procedure::procedure(){}

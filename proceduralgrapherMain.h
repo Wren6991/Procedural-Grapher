@@ -43,6 +43,8 @@ class proceduralgrapherDialog: public wxDialog
         void OnGLCanvas1MouseWheel(wxMouseEvent& event);
         void OnGLCanvas1MiddleDown(wxMouseEvent& event);
         void OnGLCanvas1MiddleUp(wxMouseEvent& event);
+        void OnGLCanvas1Paint(wxPaintEvent& event);
+        void OnGLCanvas1Resize(wxSizeEvent& event);
         //*)
         void parse();
 
@@ -59,6 +61,7 @@ class proceduralgrapherDialog: public wxDialog
         wxBoxSizer* BoxSizer1;
         //*)
         std::vector <token> tokens;
+        parser p;
         std::map <std::string, dfuncd> funcs;
         wxGLContext* GLContext1;
         bool donedrawing;
@@ -66,6 +69,8 @@ class proceduralgrapherDialog: public wxDialog
         double mousey;
         bool leftdown;
         bool middledown;
+        int lastcanvaswidth;
+        int lastcanvasheight;
         DECLARE_EVENT_TABLE()
 };
 

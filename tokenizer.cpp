@@ -57,6 +57,8 @@ std::vector <token> tokenize(std::string str)
     keywords["def"] = t_def;
     keywords["return"] = t_return;
     keywords["plot"] = t_plot;
+    keywords["and"] = t_and;
+    keywords["or"] = t_or;
 
     std::vector <token> tokens;
     streambuffer sbuf = streambuffer(str);
@@ -93,6 +95,8 @@ std::vector <token> tokenize(std::string str)
             goto lessthan;
         else if (c == '>')
             goto greaterthan;
+        else if (c == '#')
+            goto comment;
         else
             goto lexed;
     number:
@@ -114,7 +118,26 @@ std::vector <token> tokenize(std::string str)
         if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_') //letter, digit, underscore
             goto id;
         v = sbuf.str.substr(startindex, sbuf.index - startindex - 1);
-        if (keywords.find(v) == keywords.end())
+        if (v == "d")
+        {
+             if (c == '/')
+            {
+                c = sbuf.next();
+                if (c == 'd')
+                {
+                    c = sbuf.next();
+                    tokens.push_back(token(t_dif, "d/d"));
+                    goto start;
+                }
+                else
+                {
+                    tokens.push_back(token(t_id, "d"));
+                    tokens.push_back(token(t_divide, "/"));
+                    goto start;
+                }
+            }
+        }
+        else if (keywords.find(v) == keywords.end())
             tokens.push_back(token(t_id, v));
         else
             tokens.push_back(token(keywords[v], v));
@@ -180,6 +203,11 @@ std::vector <token> tokenize(std::string str)
         }
         tokens.push_back(token(t_greaterthan, ">"));
         goto start;
+    comment:
+        c = sbuf.next();
+        if (c == '\n' || c == '\r' || c == 0)
+            goto start;
+        goto comment;
     lexed:
 
     std::cout << "\n";

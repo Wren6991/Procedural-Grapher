@@ -9,17 +9,15 @@
 
 
 ////////////<Must>/////////////
-// and, or, not
+//
 ///////////<Should>////////////
 //  arrays (+ type system?)
-//  implicit plots
 //  time
 //  file dialogs
 //  settings
 //  local variables - either stack of maps, or store original values in a vector at call time and retore after return.
 //  multiple assignments
 //  resizing
-//  delete procedures in interpreter destructor
 ///////////<Could>/////////////
 //  parametrics
 //  strings/ other values.
@@ -86,7 +84,12 @@ void parser::expect(token_type_enum type)
 expression* parser::expr()
 {
     expression* e = new expression;
-    e->a = comp();
+    e->comparisons.push_back(comp());
+    while(accept(t_and)||accept(t_or))
+    {
+        e->operators.push_back(last.type);
+        e->comparisons.push_back(comp());
+    }
     return e;
 }
 
@@ -192,12 +195,19 @@ value* parser::val()
         v->expr = expr();
         expect(t_rparen);
     }
+    else if (accept(t_dif))
+    {
+        v->type = t_dif;
+        expect(t_id);
+        v->var = last.value;
+        v->b = val();
+    }
     else
         throw(n_value);
     if(accept(t_exp))
     {
         v->expd = true;
-        v->exponent = val();
+        v->b = val();
     }
     else
         v->expd = false;
@@ -497,7 +507,8 @@ returnstatement::~returnstatement()
 
 expression::~expression()
 {
-    delete a;
+    for (unsigned int i = 0; i < comparisons.size(); i++)
+        delete comparisons[i];
 }
 
 comparison::~comparison()
@@ -537,6 +548,6 @@ value::~value()
             break;
     }
     if (expd)
-        delete exponent;
+        delete b;
 }
 

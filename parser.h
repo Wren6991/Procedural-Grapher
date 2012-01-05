@@ -22,7 +22,7 @@ class value
     functioncall* funccall;
 
     bool expd;
-    value* exponent;
+    value* b;
     ~value();
 };
 
@@ -60,7 +60,8 @@ class comparison
 class expression
 {
     public:
-    comparison* a;
+    std::vector <comparison*> comparisons;
+    std::vector <token_type_enum> operators;
     ~expression();
 };
 

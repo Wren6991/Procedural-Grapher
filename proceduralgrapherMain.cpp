@@ -68,6 +68,7 @@ std::string token_type_names[] = {
     "func",
     "return",
     "plot",
+    "dif",
     "no. tokens",
     "e_value",
     "e_nostatement",
@@ -119,6 +120,15 @@ END_EVENT_TABLE()
 
 double dddprint(double);
 
+double lnbodge(double x)
+{
+    if (x > 0)
+        return log(x);
+    else
+        return log(-x) - 1000000;
+}
+
+
 proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
 {
     //(*Initialize(proceduralgrapherDialog)
@@ -153,12 +163,14 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
 
     Connect(ID_TXTEXPR,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&proceduralgrapherDialog::Tokenize);
     Connect(ID_TXTOUTPUT,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&proceduralgrapherDialog::OntxtOutputText);
+    GLCanvas1->Connect(wxEVT_PAINT,(wxObjectEventFunction)&proceduralgrapherDialog::OnGLCanvas1Paint,0,this);
     GLCanvas1->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&proceduralgrapherDialog::OnGLCanvas1LeftDown,0,this);
     GLCanvas1->Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&proceduralgrapherDialog::OnGLCanvas1LeftUp,0,this);
     GLCanvas1->Connect(wxEVT_MIDDLE_DOWN,(wxObjectEventFunction)&proceduralgrapherDialog::OnGLCanvas1MiddleDown,0,this);
     GLCanvas1->Connect(wxEVT_MIDDLE_UP,(wxObjectEventFunction)&proceduralgrapherDialog::OnGLCanvas1MiddleUp,0,this);
     GLCanvas1->Connect(wxEVT_MOTION,(wxObjectEventFunction)&proceduralgrapherDialog::OnGLCanvas1MouseMove,0,this);
     GLCanvas1->Connect(wxEVT_MOUSEWHEEL,(wxObjectEventFunction)&proceduralgrapherDialog::OnGLCanvas1MouseWheel,0,this);
+    GLCanvas1->Connect(wxEVT_SIZE,(wxObjectEventFunction)&proceduralgrapherDialog::OnGLCanvas1Resize,0,this);
     //*)
     GLContext1 = new wxGLContext(GLCanvas1);
     OutputBox = txtOutput;
@@ -179,7 +191,7 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     leftdown = false;
     middledown = false;
     funcs["print"] = dddprint;
-    funcs["ln"] = log;
+    funcs["ln"] = lnbodge;
     funcs["sin"] = sin;
     funcs["cos"] = cos;
     funcs["tan"] = tan;
@@ -190,7 +202,9 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     funcs["floor"] = floor;
     funcs["ceil"] = ceil;
     funcs["sqrt"] = sqrt;
-    tokens = tokenize(std::string(txtOutput->GetValue().ToAscii()), funcs);
+    tokens = tokenize(std::string("y = x^3 - x"), funcs);
+    lastcanvaswidth = 300;
+    lastcanvasheight = 300;
 }
 
 proceduralgrapherDialog::~proceduralgrapherDialog()
@@ -263,6 +277,7 @@ void proceduralgrapherDialog::initgl()
 {
     GLContext1->SetCurrent(*GLCanvas1);
 
+    glViewport(0, 0, lastcanvaswidth, lastcanvasheight);
     glClearColor(1, 1, 1, 1);//(0.392, 0.584, 0.929, 1); //(cornflower blue)
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
@@ -280,7 +295,7 @@ void proceduralgrapherDialog::initgl()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glColor3f(0.5, 0.5, 0.5);
-    double step = pow(2, floor(log(parserdata.right - parserdata.left) / log(2))) / 4;
+    double step = pow(2, floor(log((parserdata.right - parserdata.left)) / log(2))) / 4;
     for(double x = floor(parserdata.left/ step) * step; x < parserdata.right; x+= step)
         line2(x, parserdata.top, x, parserdata.bottom);
     step = pow(2, floor(log(parserdata.top - parserdata.bottom) / log(2))) / 4;
@@ -335,11 +350,12 @@ void proceduralgrapherDialog::OnGLCanvas1MouseMove(wxMouseEvent& event)
             leftdown = false;
             return;
         }
-        double scale = (parserdata.left - parserdata.right) / 300.0;
-        parserdata.left += dx * scale;
-        parserdata.right += dx * scale;
-        parserdata.top -= dy * scale;
-        parserdata.bottom -= dy * scale;
+        double scalex = (parserdata.left - parserdata.right) / lastcanvaswidth;
+        double scaley = (parserdata.bottom - parserdata.top) / lastcanvasheight;
+        parserdata.left += dx * scalex;
+        parserdata.right += dx * scalex;
+        parserdata.top -= dy * scaley;
+        parserdata.bottom -= dy * scaley;
         parserdata.detail = 40;
         parse();
    }
@@ -386,5 +402,22 @@ void proceduralgrapherDialog::OnGLCanvas1MiddleUp(wxMouseEvent& event)
 {
     middledown = false;
     parserdata.detail = 100;
+    parse();
+}
+
+void proceduralgrapherDialog::OnGLCanvas1Paint(wxPaintEvent& event)
+{
+}
+
+void proceduralgrapherDialog::OnGLCanvas1Resize(wxSizeEvent& event)
+{
+    double centrex = (parserdata.left + parserdata.right) / 2;
+    double centrey = (parserdata.bottom + parserdata.top) / 2;
+    parserdata.left = (parserdata.left - centrex) * event.GetSize().GetWidth() / lastcanvaswidth + centrex;
+    parserdata.right = (parserdata.right - centrex) * event.GetSize().GetWidth() / lastcanvaswidth + centrex;
+    parserdata.bottom = (parserdata.bottom - centrey) * event.GetSize().GetHeight() / lastcanvasheight + centrey;
+    parserdata.top = (parserdata.top - centrey) * event.GetSize().GetHeight() / lastcanvasheight + centrey;
+    lastcanvasheight = event.GetSize().GetHeight();
+    lastcanvaswidth = event.GetSize().GetWidth();
     parse();
 }

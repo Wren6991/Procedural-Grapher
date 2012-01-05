@@ -2,6 +2,7 @@
 #include <vector>
 #include <map>
 #include <cmath>
+#include <algorithm>
 #include "parser.h"
 #include "draw.h"
 
@@ -38,6 +39,7 @@ class interpreter
     public:
     block* program;
     procedure* proc;
+    double temp;
     double returnvalue;
     std::map<std::string, double> vars;
     std::map<std::string, dfuncd> funcs;
@@ -50,6 +52,7 @@ class interpreter
     void evaluate(block*);
     void evaluate(statement*);
     double evaluate(expression*);
+    double evaluate(comparison*);
     double evaluate(sum*);
     double evaluate(term*);
     double evaluate(value*);
