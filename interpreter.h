@@ -37,7 +37,6 @@ class procedure
 class interpreter
 {
     public:
-    block* program;
     procedure* proc;
     double temp;
     double returnvalue;
@@ -58,8 +57,9 @@ class interpreter
     double evaluate(value*);
     void evaluate(explicitplot*);
     void evaluate(implicitplot*);
+    void evaluate(parametricplot*);
 
 
-    interpreter (block*, std::map<std::string, dfuncd>, g_data);
+    interpreter (std::map<std::string, dfuncd>, g_data);
     ~interpreter();
 };

@@ -60,6 +60,8 @@ class comparison
 class expression
 {
     public:
+    bool fixed;
+    double nvalue;
     std::vector <comparison*> comparisons;
     std::vector <token_type_enum> operators;
     ~expression();
@@ -144,6 +146,20 @@ class implicitplot
     ~implicitplot();
 };
 
+class parametricplot
+{
+    public:
+    std::string parname;
+    bool givenfrom;
+    expression* from;
+    bool givento;
+    expression* to;
+    bool givenstep;
+    expression* step;
+    std::vector <assignment*> assignments;
+    ~parametricplot();
+};
+
 class returnstatement
 {
     public:
@@ -166,6 +182,7 @@ class statement
         explicitplot* expplot;
         implicitplot* impplot;
         returnstatement* returnstat;
+        parametricplot* parplot;
         } stat;
     ~statement();
 };
@@ -189,6 +206,7 @@ class parser
 
     std::map<std::string, dfuncd> funcs;
     void gettoken();
+    parser();
     parser(std::vector <token>);
     parser(std::vector <token>, std::map <std::string, dfuncd>);
     bool accept(token_type_enum);

@@ -59,6 +59,9 @@ std::vector <token> tokenize(std::string str)
     keywords["plot"] = t_plot;
     keywords["and"] = t_and;
     keywords["or"] = t_or;
+    keywords["par"] = t_par;
+    keywords["from"] = t_from;
+    keywords["step"] = t_step;
 
     std::vector <token> tokens;
     streambuffer sbuf = streambuffer(str);

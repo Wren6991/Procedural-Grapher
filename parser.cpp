@@ -31,6 +31,8 @@
 //  how about that
 ///////////////////////////////
 
+parser::parser(){}
+
 
 parser::parser(std::vector <token> tokens_)
 {
@@ -367,6 +369,44 @@ statement* parser::stat()
         r->expr = expr();
         s->stat.returnstat = r;
     }
+    else if (accept(t_par))
+    {
+        expect(t_id);
+        s->type = t_par;
+        parametricplot *p = new parametricplot;
+        p->givenfrom = false;
+        p->givento = false;
+        p->givenstep = false;
+        p->parname = last.value;
+        if (accept(t_from))
+        {
+            p->givenfrom = true;
+            p->from = expr();
+        }
+
+        if (accept(t_to))
+        {
+            p->to = expr();
+            p->givento = true;
+        }
+
+        if (accept(t_step))
+        {
+            p->step = expr();
+            p->givenstep = true;
+        }
+
+        while (accept(t_id))
+        {
+            assignment *a = new assignment;
+            a->id = last.value;
+            expect(t_equals);
+            a->rvalue = expr();
+            p->assignments.push_back(a);
+        }
+        s->stat.parplot = p;
+        expect(t_end);
+    }
     else
     {
         s->type = t_eof;
@@ -438,6 +478,10 @@ statement::~statement()
             break;
         case t_return:
             delete stat.returnstat;
+            break;
+        case t_par:
+            delete stat.parplot;
+            break;
         default:
             break;
     }
@@ -503,6 +547,21 @@ ifstatement::~ifstatement()
 returnstatement::~returnstatement()
 {
     delete expr;
+}
+
+parametricplot::~parametricplot()
+{
+    if (givenfrom)
+        delete from;
+    if (givento)
+        delete to;
+    if (givenstep)
+        delete step;
+
+    for (unsigned int i = 0; i < assignments.size(); i++)
+    {
+        delete assignments[i];
+    }
 }
 
 expression::~expression()

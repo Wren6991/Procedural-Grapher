@@ -47,6 +47,9 @@ class proceduralgrapherDialog: public wxDialog
         void OnGLCanvas1Resize(wxSizeEvent& event);
         //*)
         void parse();
+        void interpret();
+        bool validprogram;
+        std::string parserror;
 
         //(*Identifiers(proceduralgrapherDialog)
         static const long ID_TXTEXPR;
@@ -63,6 +66,7 @@ class proceduralgrapherDialog: public wxDialog
         std::vector <token> tokens;
         parser p;
         std::map <std::string, dfuncd> funcs;
+        block *program;
         wxGLContext* GLContext1;
         bool donedrawing;
         double mousex;

@@ -1,15 +1,14 @@
 #include "interpreter.h"
 
-interpreter::interpreter(block* program_, std::map<std::string, dfuncd> funcs_, g_data data_)
+interpreter::interpreter(std::map<std::string, dfuncd> funcs_, g_data data_)
 {
-    program = program_;
     funcs = funcs_;
     data = data_;
 }
 
 interpreter::~interpreter()
 {
-    delete program;
+    //delete program;
 }
 
 void interpreter::getnextcolor()
@@ -114,6 +113,9 @@ void interpreter::evaluate(statement* stat)
         case t_return:
             returnvalue = evaluate(stat->stat.returnstat->expr);
             throw(t_return);
+            break;
+        case t_par:
+            evaluate(stat->stat.parplot);
             break;
         default:
             throw(stat->type);
@@ -558,6 +560,48 @@ void interpreter::evaluate(implicitplot* relation)
     for (int i = 0; i <= ncells; i++)
         delete grid[i];
     delete grid;
+}
+
+void interpreter::evaluate(parametricplot* parp)
+{
+    setcolor(data.currentcolor);
+    double from, to, step;
+    if (parp->givenfrom)
+        from = evaluate(parp->from);
+    else
+        from = -1;
+
+    if (parp->givento)
+        to = evaluate(parp->to);
+    else
+        to = 1;
+
+    if (parp->givenstep)
+        step = max(evaluate(parp->step), (to - from) / (data.detail * 500));
+    else
+        step = (to - from) / data.detail;
+
+    int nassignments = parp->assignments.size();
+    double t = from;
+    vars[parp->parname] = t;
+    for(int i = 0; i < nassignments; i++)
+        vars[parp->assignments[i]->id] = evaluate(parp->assignments[i]->rvalue);
+    double lastx = vars["x"];
+    double lasty = vars["y"];
+    double x, y;
+    t = t + step;
+    for(; t < to + step; t += step)
+    {
+        vars[parp->parname] = t;
+        for(unsigned int i = 0; i < nassignments; i++)
+            vars[parp->assignments[i]->id] = evaluate(parp->assignments[i]->rvalue);
+        x = vars["x"];
+        y = vars["y"];
+        line2(lastx, lasty, x, y);
+        lastx = x;
+        lasty = y;
+    }
+    getnextcolor();
 }
 
 procedure::procedure(){}

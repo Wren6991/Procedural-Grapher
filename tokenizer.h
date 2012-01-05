@@ -45,6 +45,9 @@ typedef enum {
     t_return,
     t_plot,
     t_dif,
+    t_par,
+    t_from,
+    t_step,
     n_tokens,   //ought to end here really
     e_value,
     e_nostatement,
