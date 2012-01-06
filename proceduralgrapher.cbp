@@ -65,7 +65,9 @@
 			<Add library="C:\wxWidgets-2.9.2\lib\gcc_dll\libwxmsw29u_gl.a" />
 			<Add library="libopengl32.a" />
 		</Linker>
+		<Unit filename="draw.cpp" />
 		<Unit filename="draw.h" />
+		<Unit filename="interpreter.cpp" />
 		<Unit filename="interpreter.h" />
 		<Unit filename="parser.cpp" />
 		<Unit filename="parser.h" />

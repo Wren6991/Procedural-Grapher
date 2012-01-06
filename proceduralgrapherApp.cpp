@@ -28,7 +28,7 @@ bool proceduralgrapherApp::OnInit()
     	SetTopWindow(&Dlg);
     	Dlg.SetIcon(wxIcon("aaaa", wxBITMAP_TYPE_ICO_RESOURCE));
         Dlg.ShowModal();
-    	Dlg.initgl();
+    	Dlg.init2d();
     	Dlg.endgl();
     	wxsOK = false;
     }

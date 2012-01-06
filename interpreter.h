@@ -18,6 +18,11 @@ typedef struct g_data {
     double right;
     double top;
     double bottom;
+    double front;
+    double back;
+    double yaw;
+    double pitch;
+    bool is3d;
     int detail;
     std::vector <colorf> colors;
     colorf currentcolor;

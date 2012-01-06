@@ -113,6 +113,10 @@ wxString wxbuildinfo(wxbuildinfoformat format)
 //(*IdInit(proceduralgrapherDialog)
 const long proceduralgrapherDialog::ID_TXTEXPR = wxNewId();
 const long proceduralgrapherDialog::ID_TXTOUTPUT = wxNewId();
+const long proceduralgrapherDialog::ID_CHECKBOX1 = wxNewId();
+const long proceduralgrapherDialog::ID_PANEL1 = wxNewId();
+const long proceduralgrapherDialog::ID_PANEL2 = wxNewId();
+const long proceduralgrapherDialog::ID_NOTEBOOK1 = wxNewId();
 const long proceduralgrapherDialog::ID_GLCANVAS1 = wxNewId();
 //*)
 
@@ -145,10 +149,18 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     txtExpr = new wxTextCtrl(this, ID_TXTEXPR, _("y = x^3 - x"), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER|wxTE_PROCESS_TAB|wxTE_MULTILINE|wxTE_CHARWRAP|wxSUNKEN_BORDER|wxVSCROLL, wxDefaultValidator, _T("ID_TXTEXPR"));
     wxFont txtExprFont(10,wxSWISS,wxFONTSTYLE_NORMAL,wxNORMAL,false,_T("Consolas"),wxFONTENCODING_DEFAULT);
     txtExpr->SetFont(txtExprFont);
-    BoxSizer2->Add(txtExpr, 30, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    txtOutput = new wxTextCtrl(this, ID_TXTOUTPUT, _("Text"), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxSUNKEN_BORDER|wxVSCROLL, wxDefaultValidator, _T("ID_TXTOUTPUT"));
+    BoxSizer2->Add(txtExpr, 2, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Notebook1 = new wxNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, wxTRANSPARENT_WINDOW|wxTAB_TRAVERSAL, _T("ID_NOTEBOOK1"));
+    txtOutput = new wxTextCtrl(Notebook1, ID_TXTOUTPUT, _("Text"), wxPoint(-31,26), wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxSUNKEN_BORDER|wxVSCROLL, wxDefaultValidator, _T("ID_TXTOUTPUT"));
     txtOutput->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT));
-    BoxSizer2->Add(txtOutput, 10, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Panel1 = new wxPanel(Notebook1, ID_PANEL1, wxPoint(101,66), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+    chk3D = new wxCheckBox(Panel1, ID_CHECKBOX1, _("3D"), wxPoint(8,8), wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+    chk3D->SetValue(false);
+    Panel2 = new wxPanel(Notebook1, ID_PANEL2, wxPoint(155,10), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
+    Notebook1->AddPage(txtOutput, _("Output"), false);
+    Notebook1->AddPage(Panel1, _("View"), false);
+    Notebook1->AddPage(Panel2, _("Colours"), false);
+    BoxSizer2->Add(Notebook1, 1, wxLEFT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer1->Add(BoxSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     BoxSizer3 = new wxBoxSizer(wxHORIZONTAL);
     int GLCanvasAttributes_1[] = {
@@ -157,8 +169,7 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     	WX_GL_DEPTH_SIZE,      16,
     	WX_GL_STENCIL_SIZE,    0,
     	0, 0 };
-    GLCanvas1 = new wxGLCanvas(this, ID_GLCANVAS1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GLCANVAS1"), GLCanvasAttributes_1);
-    GLCanvas1->SetMinSize(wxSize(300,300));
+    GLCanvas1 = new wxGLCanvas(this, ID_GLCANVAS1, wxDefaultPosition, wxSize(300,300), 0, _T("ID_GLCANVAS1"), GLCanvasAttributes_1);
     BoxSizer3->Add(GLCanvas1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer1->Add(BoxSizer3, 1, wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     SetSizer(BoxSizer1);
@@ -166,6 +177,7 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
 
     Connect(ID_TXTEXPR,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&proceduralgrapherDialog::Tokenize);
     Connect(ID_TXTOUTPUT,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&proceduralgrapherDialog::OntxtOutputText);
+    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::Onchk3DClick);
     GLCanvas1->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&proceduralgrapherDialog::OnGLCanvas1LeftDown,0,this);
     GLCanvas1->Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&proceduralgrapherDialog::OnGLCanvas1LeftUp,0,this);
     GLCanvas1->Connect(wxEVT_MIDDLE_DOWN,(wxObjectEventFunction)&proceduralgrapherDialog::OnGLCanvas1MiddleDown,0,this);
@@ -181,6 +193,10 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     parserdata.right = 1.00001;
     parserdata.top = 1.00001;
     parserdata.bottom = -1;
+    parserdata.front = 1;
+    parserdata.back = -1;
+    parserdata.yaw = 0;
+    parserdata.pitch = 0;
     parserdata.detail = 100;
     parserdata.colors.push_back(colorf(1, 0, 0));
     parserdata.colors.push_back(colorf(0, 1, 0));
@@ -190,6 +206,7 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     parserdata.colors.push_back(colorf(0, 0.8, 0.8));
     parserdata.colorindex = 0;
     parserdata.currentcolor = parserdata.colors[0];
+    parserdata.is3d = false;
     leftdown = false;
     middledown = false;
     funcs["print"] = dddprint;
@@ -251,11 +268,10 @@ void proceduralgrapherDialog::parse()
 void proceduralgrapherDialog::interpret()
 {
     txtOutput->SetValue(parserror);
-
-    initgl();
-    glColor4f(1, 0, 0, 1);
-
-    txtOutput->SetValue("");
+    if (parserdata.is3d)
+        init3d();
+    else
+        init2d();
 
     if (validprogram)
     {
@@ -298,7 +314,7 @@ void proceduralgrapherDialog::print(std::string str)
 }
 
 
-void proceduralgrapherDialog::initgl()
+void proceduralgrapherDialog::init2d()
 {
     GLContext1->SetCurrent(*GLCanvas1);
 
@@ -333,6 +349,57 @@ void proceduralgrapherDialog::initgl()
     line2(parserdata.left, 0, parserdata.right, 0);
 }
 
+void proceduralgrapherDialog::init3d()
+{
+    GLContext1->SetCurrent(*GLCanvas1);
+
+    glViewport(0, 0, lastcanvaswidth, lastcanvasheight);
+    glClearColor(1, 1, 1, 1);//(0.392, 0.584, 0.929, 1); //(cornflower blue)
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glFrustum(parserdata.left / 2, parserdata.right / 2, parserdata.bottom / 2, parserdata.top / 2, 1, 1000);
+
+    GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+    GLfloat mat_shininess[] = { 50.0 };
+    GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };
+
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+    glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+
+    glEnable(GL_NORMALIZE);
+
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_COLOR_MATERIAL);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
+    glEnable(GL_LINE_SMOOTH);
+    glHint(GL_LINE_SMOOTH, GL_NICEST);
+    glEnable(GL_POINT_SMOOTH);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glTranslatef(0, 0, -3);
+    glRotatef(parserdata.yaw, 0, 1, 0);
+    glRotatef(parserdata.pitch, 1, 0, 0);
+
+
+
+    //int ngridlines = log(parserdata.right - parserdata.left)/log(2);
+    glColor4f(0, 0, 0, 0.2);
+    //quad3(vert3f(parserdata.left, parserdata.top, 0), vert3f(parserdata.right, parserdata.top, 0), vert3f(parserdata.right, parserdata.bottom, 0), vert3f(parserdata.left, parserdata.bottom, 0));
+    //quad3(vert3f(0, parserdata.top, parserdata.back), vert3f(0, parserdata.top, parserdata.front), vert3f(0, parserdata.bottom, parserdata.front), vert3f(0, parserdata.bottom, parserdata.back));
+
+    glDepthFunc(GL_LEQUAL);
+    glEnable(GL_DEPTH_TEST);
+
+}
+
 
 void proceduralgrapherDialog::endgl()
 {
@@ -340,6 +407,8 @@ void proceduralgrapherDialog::endgl()
         return;
     glFlush();
     GLCanvas1->SwapBuffers();
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
     donedrawing = false;    //donedrawing is set to true after parsing; once it is true, all drawn primitives can be flushed. It is then reset to false so that the screen is not cleared until the next batch of primitives has been written.
 }
 
@@ -375,18 +444,27 @@ void proceduralgrapherDialog::OnGLCanvas1MouseMove(wxMouseEvent& event)
             leftdown = false;
             return;
         }
-        double scalex = (parserdata.left - parserdata.right) / lastcanvaswidth;
-        double scaley = (parserdata.bottom - parserdata.top) / lastcanvasheight;
-        parserdata.left += dx * scalex;
-        parserdata.right += dx * scalex;
-        parserdata.top -= dy * scaley;
-        parserdata.bottom -= dy * scaley;
-        parserdata.detail = 40;
+        if (!parserdata.is3d)
+        {
+            double scalex = (parserdata.left - parserdata.right) / lastcanvaswidth;
+            double scaley = (parserdata.bottom - parserdata.top) / lastcanvasheight;
+            parserdata.left += dx * scalex;
+            parserdata.right += dx * scalex;
+            parserdata.top -= dy * scaley;
+            parserdata.bottom -= dy * scaley;
+            parserdata.detail = 40;
+        }
+        else
+        {
+            parserdata.yaw -= dx;
+            parserdata.pitch -= dy;
+        }
+
         interpret();
    }
    else if (middledown)
    {
-        if (!event.MiddleIsDown())
+        if (!(event.MiddleIsDown()||event.RightIsDown()))
         {
             middledown = false;
             return;
@@ -444,5 +522,11 @@ void proceduralgrapherDialog::OnGLCanvas1Resize(wxSizeEvent& event)
     parserdata.top = (parserdata.top - centrey) * event.GetSize().GetHeight() / lastcanvasheight + centrey;
     lastcanvasheight = event.GetSize().GetHeight();
     lastcanvaswidth = event.GetSize().GetWidth();
+    interpret();
+}
+
+void proceduralgrapherDialog::Onchk3DClick(wxCommandEvent& event)
+{
+    parserdata.is3d = chk3D->GetValue();
     interpret();
 }

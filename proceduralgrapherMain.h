@@ -11,9 +11,12 @@
 #define PROCEDURALGRAPHERMAIN_H
 
 //(*Headers(proceduralgrapherDialog)
+#include <wx/notebook.h>
 #include <wx/sizer.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
 #include <wx/glcanvas.h>
+#include <wx/panel.h>
 #include <wx/dialog.h>
 //*)
 #include "parser.h"
@@ -26,7 +29,8 @@ class proceduralgrapherDialog: public wxDialog
 
         proceduralgrapherDialog(wxWindow* parent,wxWindowID id = -1);
         virtual ~proceduralgrapherDialog();
-        void initgl();
+        void init2d();
+        void init3d();
         void endgl();
         void print(std::string str);
 
@@ -45,6 +49,8 @@ class proceduralgrapherDialog: public wxDialog
         void OnGLCanvas1MiddleUp(wxMouseEvent& event);
         void OnGLCanvas1Paint(wxPaintEvent& event);
         void OnGLCanvas1Resize(wxSizeEvent& event);
+        void OnNotebook1PageChanged(wxNotebookEvent& event);
+        void Onchk3DClick(wxCommandEvent& event);
         //*)
         void parse();
         void interpret();
@@ -54,14 +60,22 @@ class proceduralgrapherDialog: public wxDialog
         //(*Identifiers(proceduralgrapherDialog)
         static const long ID_TXTEXPR;
         static const long ID_TXTOUTPUT;
+        static const long ID_CHECKBOX1;
+        static const long ID_PANEL1;
+        static const long ID_PANEL2;
+        static const long ID_NOTEBOOK1;
         static const long ID_GLCANVAS1;
         //*)
 
         //(*Declarations(proceduralgrapherDialog)
         wxTextCtrl* txtOutput;
+        wxNotebook* Notebook1;
         wxGLCanvas* GLCanvas1;
+        wxPanel* Panel1;
         wxTextCtrl* txtExpr;
         wxBoxSizer* BoxSizer1;
+        wxPanel* Panel2;
+        wxCheckBox* chk3D;
         //*)
         std::vector <token> tokens;
         parser p;

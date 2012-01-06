@@ -25,18 +25,42 @@
 						</object>
 						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
-						<option>30</option>
+						<option>2</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TXTOUTPUT" variable="txtOutput" member="yes">
-							<value>Text</value>
-							<bg>wxSYS_COLOUR_HIGHLIGHTTEXT</bg>
-							<style>wxTE_MULTILINE|wxTE_READONLY|wxSUNKEN_BORDER|wxVSCROLL</style>
-							<handler function="OntxtOutputText" entry="EVT_TEXT" />
+						<object class="wxNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
+							<style>wxTRANSPARENT_WINDOW|wxTAB_TRAVERSAL</style>
+							<object class="notebookpage">
+								<object class="wxTextCtrl" name="ID_TXTOUTPUT" variable="txtOutput" member="yes">
+									<value>Text</value>
+									<pos>-31,26</pos>
+									<bg>wxSYS_COLOUR_HIGHLIGHTTEXT</bg>
+									<style>wxTE_MULTILINE|wxTE_READONLY|wxSUNKEN_BORDER|wxVSCROLL</style>
+									<handler function="OntxtOutputText" entry="EVT_TEXT" />
+								</object>
+								<label>Output</label>
+							</object>
+							<object class="notebookpage">
+								<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
+									<pos>101,66</pos>
+									<object class="wxCheckBox" name="ID_CHECKBOX1" variable="chk3D" member="yes">
+										<label>3D</label>
+										<pos>8,8</pos>
+										<handler function="Onchk3DClick" entry="EVT_CHECKBOX" />
+									</object>
+								</object>
+								<label>View</label>
+							</object>
+							<object class="notebookpage">
+								<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
+									<pos>155,10</pos>
+								</object>
+								<label>Colours</label>
+							</object>
 						</object>
-						<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxLEFT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
-						<option>10</option>
+						<option>1</option>
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -47,7 +71,7 @@
 					<object class="sizeritem">
 						<object class="wxGLCanvas" name="ID_GLCANVAS1" variable="GLCanvas1" member="yes">
 							<mDepthSize>16</mDepthSize>
-							<minsize>300,300</minsize>
+							<size>300,300</size>
 							<handler function="OnGLCanvas1LeftDown" entry="EVT_LEFT_DOWN" />
 							<handler function="OnGLCanvas1LeftUp" entry="EVT_LEFT_UP" />
 							<handler function="OnGLCanvas1MiddleDown" entry="EVT_MIDDLE_DOWN" />

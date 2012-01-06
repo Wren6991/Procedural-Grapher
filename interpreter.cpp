@@ -1,4 +1,5 @@
 #include "interpreter.h"
+#include <wx/glcanvas.h>
 
 interpreter::interpreter(std::map<std::string, dfuncd> funcs_, g_data data_)
 {
@@ -280,60 +281,90 @@ double interpreter::evaluate(value *v)
 void interpreter::evaluate(explicitplot* relation)
 {
     setcolor(data.currentcolor);
-    if (relation->rangevar == "y")
+    if (!data.is3d)
     {
-        double x, y, lastx, lasty, step;
-        x = data.left;
-        step = (data.right - data.left)/data.detail;
-        vars["x"] = x;
-        y = evaluate(relation->expr);
-        while(x < data.right + step)
+        if (relation->rangevar == "y")
         {
-            lastx = x;
-            lasty = y;
-            x += step;
+            double x, y, lastx, lasty, step;
+            x = data.left;
+            step = (data.right - data.left)/data.detail;
             vars["x"] = x;
             y = evaluate(relation->expr);
-            line2(lastx, lasty, x, y);
+            while(x < data.right + step)
+            {
+                lastx = x;
+                lasty = y;
+                x += step;
+                vars["x"] = x;
+                y = evaluate(relation->expr);
+                line2(lastx, lasty, x, y);
+            }
         }
-    }
-    else if (relation->rangevar == "x")
-    {
-        double x, y, lastx, lasty, step;
-        y = data.bottom;
-        step = (data.top - data.bottom)/data.detail;
-        vars["y"] = y;
-        x = evaluate(relation->expr);
-        while(y < data.top + step)
+        else if (relation->rangevar == "x")
         {
-            lastx = x;
-            lasty = y;
-            y += step;
+            double x, y, lastx, lasty, step;
+            y = data.bottom;
+            step = (data.top - data.bottom)/data.detail;
             vars["y"] = y;
             x = evaluate(relation->expr);
-            line2(lastx, lasty, x, y);
+            while(y < data.top + step)
+            {
+                lastx = x;
+                lasty = y;
+                y += step;
+                vars["y"] = y;
+                x = evaluate(relation->expr);
+                line2(lastx, lasty, x, y);
+            }
         }
-    }
-    else if (relation->rangevar == "r")
-    {
-        double r, theta, lastr, lasttheta, step;
-        theta = -10;
-        step = 10.0/data.detail;
-        vars["theta"] = theta;
-        r = evaluate(relation->expr);
-        while(theta < 10 + step)
+        else if (relation->rangevar == "r")
         {
-            lastr = r;
-            lasttheta = theta;
-            theta += step;
+            double r, theta, lastr, lasttheta, step;
+            theta = -10;
+            step = 10.0/data.detail;
             vars["theta"] = theta;
             r = evaluate(relation->expr);
-            line2(lastr * cos(lasttheta), lastr * sin(lasttheta), r * cos(theta), r * sin(theta));
+            while(theta < 10 + step)
+            {
+                lastr = r;
+                lasttheta = theta;
+                theta += step;
+                vars["theta"] = theta;
+                r = evaluate(relation->expr);
+                line2(lastr * cos(lasttheta), lastr * sin(lasttheta), r * cos(theta), r * sin(theta));
+            }
+        }
+        else
+        {
+            throw (e_ordinate);
         }
     }
     else
     {
-        throw (e_ordinate);
+
+        if (relation->rangevar == "y")
+        {
+            double x, y, lastx, lasty, step;
+            x = data.left;
+            step = (data.right - data.left)/data.detail;
+            vars["x"] = x;
+            y = evaluate(relation->expr);
+            while(x < data.right + step)
+            {
+                lastx = x;
+                lasty = y;
+                x += step;
+                vars["x"] = x;
+                y = evaluate(relation->expr);
+                glNormal3f(lasty - y, x - lastx, 0);
+                quad3(vert3f(lastx, lasty, data.front), vert3f(x, y, data.front), vert3f(x, y, data.back), vert3f(lastx, lasty, data.back));//triangle2(lastx, lasty, x, y, x, y + 0.1);
+            }
+        }
+        else
+        {
+            throw (e_ordinate);
+        }
+
     }
     getnextcolor();
 }
