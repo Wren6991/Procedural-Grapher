@@ -291,7 +291,7 @@ void proceduralgrapherDialog::interpret()
 
     donedrawing = true;
     endgl();
-    (*OutputBox) << parserdata.left << ", " << parserdata.right << "\n" << parserdata.top << ", " << parserdata.bottom << "\nComplete.";
+    (*OutputBox) << parserdata.left << ", " << parserdata.bottom << ", " << parserdata.back << "\n" << parserdata.right << ", " << parserdata.top << ", " << parserdata.front << "\nComplete.";
 }
 
 void proceduralgrapherDialog::Tokenize(wxCommandEvent& event)
@@ -359,7 +359,7 @@ void proceduralgrapherDialog::init3d()
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glFrustum(parserdata.left / 2, parserdata.right / 2, parserdata.bottom / 2, parserdata.top / 2, 1, 1000);
+    glFrustum(-1, 1, -1, 1, 1, 1000);//(parserdata.left / 2, parserdata.right / 2, parserdata.bottom / 2, parserdata.top / 2, 1, 1000);
 
     GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
     GLfloat mat_shininess[] = { 50.0 };
@@ -368,6 +368,7 @@ void proceduralgrapherDialog::init3d()
     glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
     glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
     glEnable(GL_NORMALIZE);
 
@@ -385,8 +386,11 @@ void proceduralgrapherDialog::init3d()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glTranslatef(0, 0, -3);
-    glRotatef(parserdata.yaw, 0, 1, 0);
+    glScalef(3/(parserdata.right - parserdata.left), 3/(parserdata.top - parserdata.bottom), 3/(parserdata.front - parserdata.back));
+    glTranslatef((parserdata.left + parserdata.right) / -2, (parserdata.top + parserdata.bottom) / -2, (parserdata.front + parserdata.back) / -2);
     glRotatef(parserdata.pitch, 1, 0, 0);
+    glRotatef(parserdata.yaw, 0, 1, 0);
+
 
 
 
@@ -475,6 +479,8 @@ void proceduralgrapherDialog::OnGLCanvas1MouseMove(wxMouseEvent& event)
         parserdata.bottom = (parserdata.bottom - centrey) * pow(1.01, dy) + centrey;
         parserdata.left = (parserdata.left - centrex) * pow(1.01, dy) + centrex;
         parserdata.right = (parserdata.right - centrex) * pow(1.01, dy) + centrex;
+        parserdata.back  *= pow(1.01, dy);
+        parserdata.front *= pow(1.01, dy);
         parserdata.detail = 40;
         interpret();
    }
@@ -492,6 +498,7 @@ void proceduralgrapherDialog::OnGLCanvas1MouseWheel(wxMouseEvent& event)
     parserdata.bottom = (parserdata.bottom - centrey) * pow(1.1, event.GetWheelRotation()) + centrey;
     parserdata.left = (parserdata.left - centrex) * pow(1.1, event.GetWheelRotation()) + centrex;
     parserdata.right = (parserdata.right - centrex) * pow(1.1, event.GetWheelRotation()) + centrex;
+
 }
 
 void proceduralgrapherDialog::OnGLCanvas1MiddleDown(wxMouseEvent& event)

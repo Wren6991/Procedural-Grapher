@@ -340,8 +340,7 @@ void interpreter::evaluate(explicitplot* relation)
         }
     }
     else
-    {
-
+    {/*
         if (relation->rangevar == "y")
         {
             double x, y, lastx, lasty, step;
@@ -358,6 +357,71 @@ void interpreter::evaluate(explicitplot* relation)
                 y = evaluate(relation->expr);
                 glNormal3f(lasty - y, x - lastx, 0);
                 quad3(vert3f(lastx, lasty, data.front), vert3f(x, y, data.front), vert3f(x, y, data.back), vert3f(lastx, lasty, data.back));//triangle2(lastx, lasty, x, y, x, y + 0.1);
+            }
+        }*/
+        if (relation->rangevar == "y")
+        {
+            int ncells = data.detail / 2 + 1;
+            double** grid = new double*[ncells + 3];
+            for (int i = 0; i < ncells + 3; i++)
+                grid[i] = new double[ncells + 3];             //    "fencing" vertex (+1) and 1 step padding on each side for normal calculation (+2).
+            double stepx = (data.right - data.left) / ncells;
+            double stepz = (data.front - data.back) / ncells;
+            double x, z;
+            x = data.left - stepx;
+            for (int i = 0; i < ncells + 3; i++)
+            {
+                vars["x"] = x;
+                z = data.back - stepz;
+                for(int j = 0; j < ncells + 3; j++)
+                {
+                    vars["z"] = z;
+                    grid[i][j] = evaluate(relation->expr);
+                    z += stepz;
+                }
+                x += stepx;
+            }
+            vert3f** normals = new vert3f*[ncells + 1];
+            for(int i = 0; i < ncells + 1; i++)
+                normals[i] = new vert3f[ncells + 1];
+
+            for(int i = 0; i <= ncells; i++)
+                for(int j = 0; j <= ncells; j++)
+                {
+                    normals[i][j] = vert3f(
+                                           (grid[i+2][j+1] - grid[i][j+1]) * stepz * 2,
+                                           -(stepx * stepz * 4),
+                                           (grid[i+1][j+2] - grid[i+1][j]) * stepx * 2
+                                           );                                           //cross product of the two tangent vectors
+                }
+            double lastx = data.left;
+
+            int lasti = 0;
+            double lastz;
+            int lastj;
+            for (int i = 1; i <= ncells; i++)
+            {
+                x = lastx + stepx;
+                lastj = 0;
+                lastz = data.back;
+                for(int j = 1; j <= ncells; j++)
+                {
+                    z = lastz + stepz;
+                    glBegin(GL_POLYGON);
+                    glNormal3f(normals[lasti][lastj].x, normals[lasti][lastj].y, normals[lasti][lastj].z);
+                    glVertex3d(lastx, grid[lasti + 1][lastj + 1], lastz);   // +1 because of padding on left and bottom of grid (for normal calcs)
+                    glNormal3f(normals[i][lastj].x, normals[i][lastj].y, normals[i][lastj].z);
+                    glVertex3d(x, grid[i + 1][lastj + 1], lastz);
+                    glNormal3f(normals[i][j].x, normals[i][j].y, normals[i][j].z);
+                    glVertex3d(x, grid[i + 1][j + 1], z);
+                    glNormal3f(normals[lasti][j].x, normals[lasti][j].y, normals[lasti][j].z);
+                    glVertex3d(lastx, grid[lasti + 1][j + 1], z);
+                    glEnd();
+                    lastz = z;
+                    lastj = j;
+                }
+                lastx = x;
+                lasti = i;
             }
         }
         else
