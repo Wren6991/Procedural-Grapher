@@ -144,6 +144,7 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
 
     Create(parent, wxID_ANY, _("Procedural Grapher"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
     SetClientSize(wxSize(-1,-1));
+    SetMaxSize(wxSize(-1,-1));
     BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
     BoxSizer2 = new wxBoxSizer(wxVERTICAL);
     txtExpr = new wxTextCtrl(this, ID_TXTEXPR, _("y = x^3 - x"), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER|wxTE_PROCESS_TAB|wxTE_MULTILINE|wxTE_CHARWRAP|wxSUNKEN_BORDER|wxVSCROLL, wxDefaultValidator, _T("ID_TXTEXPR"));
@@ -336,12 +337,15 @@ void proceduralgrapherDialog::init2d()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glColor3f(0.5, 0.5, 0.5);
-    double step = pow(2, floor(log((parserdata.right - parserdata.left) * 300.0 / lastcanvaswidth) / log(2))) / 4;
-    for(double x = floor(parserdata.left/ step) * step; x < parserdata.right; x+= step)
+    double stepx = pow(2, floor(log((parserdata.right - parserdata.left) * 300.0 / lastcanvaswidth) / log(2))) / 4;
+    for(double x = floor(parserdata.left/ stepx) * stepx; x < parserdata.right; x+= stepx)
         line2(x, parserdata.top, x, parserdata.bottom);
-    step = pow(2, floor(log((parserdata.top - parserdata.bottom) * 300.0 / lastcanvasheight) / log(2))) / 4;
-    for(double y = floor(parserdata.bottom / step) * step; y < parserdata.top; y += step)
+
+    double stepy = pow(2, floor(log((parserdata.top - parserdata.bottom) * 300.0 / lastcanvasheight) / log(2))) / 4;
+    for(double y = floor(parserdata.bottom / stepy) * stepy; y < parserdata.top; y += stepy)
         line2(parserdata.left, y, parserdata.right, y);
+
+    point2(parserdata.left + mousex / (lastcanvaswidth / 2), parserdata.top - mousey / (lastcanvasheight / 2));
 
     //int ngridlines = log(parserdata.right - parserdata.left)/log(2);
     glColor3f(0, 0, 0);
@@ -386,10 +390,10 @@ void proceduralgrapherDialog::init3d()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glTranslatef(0, 0, -3);
-    glScalef(3/(parserdata.right - parserdata.left), 3/(parserdata.top - parserdata.bottom), 3/(parserdata.front - parserdata.back));
-    glTranslatef((parserdata.left + parserdata.right) / -2, (parserdata.top + parserdata.bottom) / -2, (parserdata.front + parserdata.back) / -2);
     glRotatef(parserdata.pitch, 1, 0, 0);
     glRotatef(parserdata.yaw, 0, 1, 0);
+    glScalef(3/(parserdata.right - parserdata.left), 3/(parserdata.top - parserdata.bottom), 3/(parserdata.front - parserdata.back));
+    glTranslatef((parserdata.left + parserdata.right) / -2, (parserdata.top + parserdata.bottom) / -2, (parserdata.front + parserdata.back) / -2);
 
 
 
@@ -523,10 +527,13 @@ void proceduralgrapherDialog::OnGLCanvas1Resize(wxSizeEvent& event)
 {
     double centrex = (parserdata.left + parserdata.right) / 2;
     double centrey = (parserdata.bottom + parserdata.top) / 2;
+    double centrez = (parserdata.front + parserdata.back) / 2;
     parserdata.left = (parserdata.left - centrex) * event.GetSize().GetWidth() / lastcanvaswidth + centrex;
     parserdata.right = (parserdata.right - centrex) * event.GetSize().GetWidth() / lastcanvaswidth + centrex;
     parserdata.bottom = (parserdata.bottom - centrey) * event.GetSize().GetHeight() / lastcanvasheight + centrey;
     parserdata.top = (parserdata.top - centrey) * event.GetSize().GetHeight() / lastcanvasheight + centrey;
+    parserdata.front = (parserdata.front - centrez) * event.GetSize().GetWidth() / lastcanvaswidth + centrez;
+    parserdata.back = (parserdata.back - centrez) * event.GetSize().GetWidth() / lastcanvaswidth + centrez;
     lastcanvasheight = event.GetSize().GetHeight();
     lastcanvaswidth = event.GetSize().GetWidth();
     interpret();

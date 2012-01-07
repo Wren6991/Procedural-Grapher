@@ -15,16 +15,14 @@
 //  time
 //  file dialogs
 //  settings
-//  local variables - either stack of maps, or store original values in a vector at call time and retore after return.
-//  multiple assignments
-//  resizing
+//  local variables - either stack of maps, or store original values in a vector at call time and restore after return.
 ///////////<Could>/////////////
-//  parametrics
 //  strings/ other values.
-//  3d
-//  memoize everything! have an array of values from 1...ntokens plus bools for fixed and eval'd, and check list before eval'ing an expression / w/e! (fixed could propagate up one level each evaluation - eprs that are evaluated lots are perfectly optimised, others less so.)
+//  mouse tracing and intersections
+//  3d implicit
 //  shunting yard?
 //  fixed expressions (evaluate at parse time, then never again)
+//  multiple assignments
 ///////////<Won't>/////////////
 //  I should probably put something in here
 //  solve p v ¬p
