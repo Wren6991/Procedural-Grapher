@@ -16,8 +16,11 @@
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
 #include <wx/glcanvas.h>
+#include <wx/stopwatch.h>
 #include <wx/panel.h>
+#include <wx/button.h>
 #include <wx/dialog.h>
+#include <wx/timer.h>
 //*)
 #include "parser.h"
 #include <vector>
@@ -51,6 +54,12 @@ class proceduralgrapherDialog: public wxDialog
         void OnGLCanvas1Resize(wxSizeEvent& event);
         void OnNotebook1PageChanged(wxNotebookEvent& event);
         void Onchk3DClick(wxCommandEvent& event);
+        void OnTimer1Trigger(wxTimerEvent& event);
+        void OnbtnStartStopTimeClick(wxCommandEvent& event);
+        void OnbtnResetTimeClick(wxCommandEvent& event);
+        void OnPanel1Paint(wxPaintEvent& event);
+        void OnGLCanvas1RightDown(wxMouseEvent& event);
+        void OnchkGridClick(wxCommandEvent& event);
         //*)
         void parse();
         void interpret();
@@ -61,20 +70,29 @@ class proceduralgrapherDialog: public wxDialog
         static const long ID_TXTEXPR;
         static const long ID_TXTOUTPUT;
         static const long ID_CHECKBOX1;
+        static const long ID_CHECKBOX2;
         static const long ID_PANEL1;
+        static const long ID_BUTTON1;
+        static const long ID_BUTTON2;
         static const long ID_PANEL2;
         static const long ID_NOTEBOOK1;
         static const long ID_GLCANVAS1;
+        static const long ID_TIMER1;
         //*)
 
         //(*Declarations(proceduralgrapherDialog)
+        wxButton* btnStartStopTime;
         wxTextCtrl* txtOutput;
         wxNotebook* Notebook1;
         wxGLCanvas* GLCanvas1;
+        wxButton* btnResetTime;
         wxPanel* Panel1;
         wxTextCtrl* txtExpr;
+        wxStopWatch StopWatch1;
         wxBoxSizer* BoxSizer1;
         wxPanel* Panel2;
+        wxCheckBox* chkGrid;
+        wxTimer Timer1;
         wxCheckBox* chk3D;
         //*)
         std::vector <token> tokens;

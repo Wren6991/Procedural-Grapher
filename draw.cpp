@@ -80,7 +80,9 @@ void poly2(float verts[], int count)
 
 void rect2_4a(float ax, float ay, float bx, float by, colorf basecol, float a1, float a2, float a3, float a4)
 {
-    glBegin(GL_POLYGON);
+    glBegin(GL_TRIANGLE_FAN);
+    setcolor(basecol, (a1 + a2 + a3 + a4) / 4);
+    glVertex3f((ax + bx) / 2, (ay + by) / 2, -1);
     setcolor(basecol, a1);
     glVertex3f(ax, ay, -1);
     setcolor(basecol, a2);
@@ -89,6 +91,8 @@ void rect2_4a(float ax, float ay, float bx, float by, colorf basecol, float a1, 
     glVertex3f(bx, by, -1);
     setcolor(basecol, a3);
     glVertex3f(ax, by, -1);
+    setcolor(basecol, a1);
+    glVertex3f(ax, ay, -1);
     glEnd();
 }
 

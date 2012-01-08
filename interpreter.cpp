@@ -7,6 +7,9 @@ interpreter::interpreter(std::map<std::string, dfuncd> funcs_, g_data data_)
 {
     funcs = funcs_;
     data = data_;
+    vars["mousex"] = data.mousex;
+    vars["mousey"] = data.mousey;
+    vars["time"] = data.time / 1000.0;
 }
 
 interpreter::~interpreter()
@@ -478,12 +481,12 @@ void interpreter::evaluate(explicitplot* relation)
                 lasty = y;
                 lasti = i;
             }
-            /*for (int i = 0; i < ncells + 3; i++)
+            for (int i = 0; i < ncells + 3; i++)
                 delete grid[i];
             delete grid;
             for (int i = 0; i < ncells + 1; i++)
                 delete normals[i];
-            delete normals;*/
+            delete normals;
         }
         else if (relation->rangevar == "z")
         {
