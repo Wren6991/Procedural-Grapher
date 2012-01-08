@@ -73,7 +73,24 @@ void interpreter::evaluate(statement* stat)
             }
             break;
         case t_let:
-            vars[stat->stat.assignstat->id] = evaluate(stat->stat.assignstat->rvalue);
+            if (stat->stat.assignstat->ismultiple)
+            {
+                int n_ass = stat->stat.assignstat->extra_ids.size();
+                double singleval = evaluate(stat->stat.assignstat->rvalue);
+                double *vals = new double[n_ass];
+                for (int i = 0; i < n_ass; i++)
+                {
+                    vals[i] = evaluate(stat->stat.assignstat->extra_rvalues[i]);
+                }
+                vars[stat->stat.assignstat->id] = singleval;
+                for (int i = 0; i < n_ass; i++)
+                {
+                    vars[stat->stat.assignstat->extra_ids[i]] = vals[i];
+                }
+                delete vals;
+            }
+            else
+                vars[stat->stat.assignstat->id] = evaluate(stat->stat.assignstat->rvalue);
             break;
         case t_func:
             funcs[stat->stat.funcstat->name](evaluate(stat->stat.funcstat->arg));
@@ -85,6 +102,7 @@ void interpreter::evaluate(statement* stat)
             evaluate(stat->stat.impplot);
             break;
         case t_def:
+            std::cout << "Defining procedure " << stat->stat.defstat->name << "\n";
             procedures[stat->stat.defstat->name] =  new procedure(stat->stat.defstat->args, stat->stat.defstat->entrypoint);
             break;
         case n_procedure:

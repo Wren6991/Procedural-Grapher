@@ -126,6 +126,9 @@ class assignment
     public:
     std::string id;
     expression* rvalue;
+    bool ismultiple;
+    std::vector <std::string> extra_ids;
+    std::vector <expression*> extra_rvalues;
     ~assignment();
 };
 

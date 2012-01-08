@@ -219,13 +219,57 @@ statement* parser::stat()
     statement *s = new statement;
     if(accept(t_let))
     {
-        s->type = t_let;
-        assignment *a = new assignment;
+
         expect(t_id);
-        a->id = last.value;
-        expect(t_equals);
-        a->rvalue = expr();
-        s->stat.assignstat = a;
+        std::string id = last.value;
+        if (accept(t_lparen))   // let f(x) = x^2
+        {
+            s->type = t_def;
+            defstatement *d = new defstatement;
+            d->name = id;
+            while (!accept(t_rparen))
+            {
+                expect(t_id);
+                d->args.push_back(last.value);
+                if(!accept(t_comma))
+                {
+                    expect(t_rparen);
+                    break;
+                }
+            }
+            expect(t_equals);
+            block* b = new block;   //build a new block, with a return statement that returns the expression:
+            statement* rs = new statement;
+            returnstatement* r = new returnstatement;
+            r->expr = expr();
+            rs->type = t_return;
+            rs->stat.returnstat = r;
+            b->statements.push_back(rs);
+            d->entrypoint = b;
+            s->stat.defstat = d;
+        }
+        else
+        {
+            s->type = t_let;
+            assignment *a = new assignment;
+            a->id = id;
+            a->ismultiple = false;
+            while (accept(t_comma))
+            {
+                a->ismultiple = true;
+                expect(t_id);
+                a->extra_ids.push_back(last.value);
+            }
+            expect(t_equals);
+            a->rvalue = expr();
+            for (int i = 0; i < a->extra_ids.size(); i++)
+            {
+                expect(t_comma);
+                a->extra_rvalues.push_back(expr());
+            }
+
+            s->stat.assignstat = a;
+        }
     }
     else if (accept(t_while))
     {
@@ -498,6 +542,9 @@ explicitplot::~explicitplot()
 assignment::~assignment()
 {
     delete rvalue;
+    if (ismultiple)
+        for (int i = 0; i < extra_rvalues.size(); i++)
+            delete extra_rvalues[i];
 }
 
 functioncall::~functioncall()
