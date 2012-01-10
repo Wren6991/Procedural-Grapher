@@ -22,6 +22,8 @@ class vert3f
     vert3f(float, float, float);
 };
 
+vert3f normalize(vert3f);
+
 void line2(float, float, float, float);
 void triangle2(float, float, float, float, float, float);
 void quad2(float, float, float, float, float, float, float, float);

@@ -12,7 +12,6 @@
 //
 ///////////<Should>////////////
 //  arrays (+ type system?)
-//  time
 //  file dialogs
 //  settings
 //  local variables - either stack of maps, or store original values in a vector at call time and restore after return.
@@ -22,7 +21,6 @@
 //  3d implicit
 //  shunting yard?
 //  fixed expressions (evaluate at parse time, then never again)
-//  multiple assignments
 ///////////<Won't>/////////////
 //  I should probably put something in here
 //  solve p v ¬p
@@ -194,6 +192,11 @@ value* parser::val()
         v->type = n_expression;
         v->expr = expr();
         expect(t_rparen);
+    }
+    else if (accept(t_string))
+    {
+        v->type = t_string;
+        v->var = last.value;
     }
     else if (accept(t_dif))
     {
@@ -653,5 +656,28 @@ value::~value()
     }
     if (expd)
         delete b;
+}
+
+tagged_value::tagged_value()
+{
+    type = val_nil;
+}
+
+tagged_value::tagged_value(double n)
+{
+    type = val_number;
+    val.n = n;
+}
+
+tagged_value::tagged_value(procedure* p)
+{
+    type = val_procedure;
+    val.proc = p;
+}
+
+tagged_value::tagged_value(int str)
+{
+    type = val_string;
+    val.str = str;
 }
 

@@ -46,11 +46,12 @@ class interpreter
 {
     public:
     procedure* proc;
-    double temp;
-    double returnvalue;
-    std::map<std::string, double> vars;
+    tagged_value temp;
+    tagged_value returnvalue;
+    std::map<std::string, tagged_value> vars;
     std::map<std::string, dfuncd> funcs;
-    std::map<std::string, procedure*> procedures;
+    std::vector<std::string> strings;
+    std::vector <procedure*> procedures;     //pointers to procedures are maintained here for cleanup in destructor - actually called from vars map.
     g_data data;
     bool receivedequals;
     bool receivedinequal;
@@ -58,11 +59,11 @@ class interpreter
     void getnextcolor();
     void evaluate(block*);
     void evaluate(statement*);
-    double evaluate(expression*);
-    double evaluate(comparison*);
-    double evaluate(sum*);
-    double evaluate(term*);
-    double evaluate(value*);
+    tagged_value evaluate(expression*);
+    tagged_value evaluate(comparison*);
+    tagged_value evaluate(sum*);
+    tagged_value evaluate(term*);
+    tagged_value evaluate(value*);
     void evaluate(explicitplot*);
     void evaluate(implicitplot*);
     void evaluate(parametricplot*);

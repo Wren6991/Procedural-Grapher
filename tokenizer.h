@@ -60,7 +60,9 @@ typedef enum {
     s_plot_imp
     } token_type_enum;
 
-typedef double (*dfuncd)(double);
+class tagged_value;
+
+typedef tagged_value (*dfuncd)(tagged_value);
 
 class token
 {

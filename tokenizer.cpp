@@ -100,6 +100,8 @@ std::vector <token> tokenize(std::string str)
             goto greaterthan;
         else if (c == '#')
             goto comment;
+        else if (c == '"')
+            goto string;
         else
             goto lexed;
     number:
@@ -211,6 +213,13 @@ std::vector <token> tokenize(std::string str)
         if (c == '\n' || c == '\r' || c == 0)
             goto start;
         goto comment;
+    string:
+        c = sbuf.next();
+        if (c != '"' && c != 0)
+            goto string;
+        tokens.push_back(token(t_string, sbuf.str.substr(startindex + 1, sbuf.index - startindex - 2)));
+        c = sbuf.next();
+        goto start;
     lexed:
 
     std::cout << "\n";

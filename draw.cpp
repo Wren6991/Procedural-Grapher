@@ -23,6 +23,12 @@ vert3f::vert3f(float x_, float y_, float z_)
     z = z_;
 }
 
+vert3f normalize(vert3f v)
+{
+    float dist = sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
+    return vert3f(v.x/dist, v.y/dist, v.z/dist);
+}
+
 void line2(float ax, float ay, float bx, float by)
 {
     glBegin(GL_LINES);
