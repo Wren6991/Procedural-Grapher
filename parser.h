@@ -9,6 +9,33 @@ class procedurecall;
 class functioncall;
 class expression;
 
+typedef enum value_type
+{
+    val_nil = 0,
+    val_number,
+    val_string,
+    val_procedure,
+    val_array,
+} value_type;
+
+class procedure;
+
+class tagged_value
+{
+    public:
+    value_type type;
+    union
+    {
+        double n;
+        int str;    //index in interpreter's string table
+        procedure* proc;
+        int arr;
+    } val;
+    tagged_value();
+    tagged_value(double);
+    tagged_value(procedure*);
+};
+
 class value
 {
     public:

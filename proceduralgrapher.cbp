@@ -21,7 +21,6 @@
 					<Add directory="C:\wxWidgets-2.9.2\lib\gcc_dll\mswu" />
 				</ResourceCompiler>
 				<Linker>
-					<Add library="libwxmsw29u.a" />
 					<Add directory="C:\wxWidgets-2.9.2\lib\gcc_dll" />
 				</Linker>
 			</Target>
@@ -40,7 +39,6 @@
 				</ResourceCompiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="libwxmsw29u.a" />
 					<Add directory="C:\wxWidgets-2.9.2\lib\gcc_dll" />
 				</Linker>
 			</Target>
@@ -62,8 +60,9 @@
 		</ResourceCompiler>
 		<Linker>
 			<Add option="-mthreads" />
-			<Add library="C:\wxWidgets-2.9.2\lib\gcc_dll\libwxmsw29u_gl.a" />
 			<Add library="libopengl32.a" />
+			<Add library="C:\wxWidgets-2.9.2\lib\gcc_dll\libwxmsw29u_gl.a" />
+			<Add library="C:\wxWidgets-2.9.2\lib\gcc_dll\libwxmsw29u.a" />
 		</Linker>
 		<Unit filename="draw.cpp" />
 		<Unit filename="draw.h" />

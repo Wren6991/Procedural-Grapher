@@ -27,6 +27,7 @@
 #include "draw.h"
 
 wxTextCtrl *OutputBox;
+interpreter* interp_ptr;
 
 g_data parserdata;
 
@@ -84,6 +85,110 @@ std::string token_type_names[] = {
     "implicit plot"
 };
 
+double lnbodge(double x)
+{
+    if (x > 0)
+        return log(x);
+    else
+        return log(-x) - 1000000;
+}
+tagged_value log_tv(tagged_value tv)
+{
+    if (tv.type == val_number)
+        return tagged_value(lnbodge(tv.val.n));
+    else
+        throw(error("Error: expected number as argument to function \"ln\""));
+}
+
+tagged_value sin_tv(tagged_value tv)
+{
+    if (tv.type == val_number)
+        return tagged_value(sin(tv.val.n));
+    else
+        throw(error("Error: expected number as argument to function \"sin\""));
+}
+
+tagged_value cos_tv(tagged_value tv)
+{
+    if (tv.type == val_number)
+        return tagged_value(cos(tv.val.n));
+    else
+        throw(error("Error: expected number as argument to function \"cos\""));
+}
+
+tagged_value tan_tv(tagged_value tv)
+{
+    if (tv.type == val_number)
+        return tagged_value(tan(tv.val.n));
+    else
+        throw(error("Error: expected number as argument to function \"tan\""));
+}
+
+tagged_value asin_tv(tagged_value tv)
+{
+    if (tv.type == val_number)
+        return tagged_value(asin(tv.val.n));
+    else
+        throw(error("Error: expected number as argument to function \"asin\""));
+}
+
+tagged_value acos_tv(tagged_value tv)
+{
+    if (tv.type == val_number)
+        return tagged_value(acos(tv.val.n));
+    else
+        throw(error("Error: expected number as argument to function \"acos\""));
+}
+
+tagged_value atan_tv(tagged_value tv)
+{
+    if (tv.type == val_number)
+        return tagged_value(atan(tv.val.n));
+    else
+        throw(error("Error: expected number as argument to function \"atan\""));
+}
+
+tagged_value abs_tv(tagged_value tv)
+{
+    if (tv.type == val_number)
+        return tagged_value(fabs(tv.val.n));
+    else
+        throw(error("Error: expected number as argument to function \"abs\""));
+}
+
+tagged_value floor_tv(tagged_value tv)
+{
+    if (tv.type == val_number)
+        return tagged_value(floor(tv.val.n));
+    else
+        throw(error("Error: expected number as argument to function \"floor\""));
+}
+
+tagged_value ceil_tv(tagged_value tv)
+{
+    if (tv.type == val_number)
+        return tagged_value(ceil(tv.val.n));
+    else
+        throw(error("Error: expected number as argument to function \"ceil\""));
+}
+
+tagged_value sqrt_tv(tagged_value tv)
+{
+    if (tv.type == val_number)
+        return tagged_value(sqrt(tv.val.n));
+    else
+        throw(error("Error: expected number as argument to function \"sqrt\""));
+}
+
+tagged_value print_tv(tagged_value tv)
+{
+    if (tv.type == val_number)
+        (*OutputBox) << tv.val.n << "\n";
+    else if (tv.type == val_string)
+        (*OutputBox) << interp_ptr->strings[tv.val.str] << "\n";
+    else
+        throw(error("Error: expected number or string as argument to function \"print\""));
+}
 //helper functions
 enum wxbuildinfoformat {
     short_f, long_f };
@@ -128,16 +233,6 @@ BEGIN_EVENT_TABLE(proceduralgrapherDialog,wxDialog)
     //(*EventTable(proceduralgrapherDialog)
     //*)
 END_EVENT_TABLE()
-
-double dddprint(double);
-
-double lnbodge(double x)
-{
-    if (x > 0)
-        return log(x);
-    else
-        return log(-x) - 1000000;
-}
 
 
 proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
@@ -234,25 +329,26 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     parserdata.is3d = false;
     leftdown = false;
     middledown = false;
-    funcs["print"] = dddprint;
-    funcs["ln"] = lnbodge;
-    funcs["sin"] = sin;
-    funcs["cos"] = cos;
-    funcs["tan"] = tan;
-    funcs["asin"] = asin;
-    funcs["acos"] = acos;
-    funcs["atan"] = atan;
-    funcs["abs"] = fabs;
-    funcs["floor"] = floor;
-    funcs["ceil"] = ceil;
-    funcs["sqrt"] = sqrt;
+    funcs["print"] = print_tv;
+    funcs["ln"] = log_tv;
+    funcs["sin"] = sin_tv;
+    funcs["cos"] = cos_tv;
+    funcs["tan"] = tan_tv;
+    funcs["asin"] = asin_tv;
+    funcs["acos"] = acos_tv;
+    funcs["atan"] = atan_tv;
+    funcs["abs"] = abs_tv;
+    funcs["floor"] = floor_tv;
+    funcs["ceil"] = ceil_tv;
+    funcs["sqrt"] = sqrt_tv;
+    lastcanvaswidth = 300;
+    lastcanvasheight = 300;
     tokens = tokenize(std::string("y = x^3 - x"), funcs);
     p = parser(tokens);
     program = p.blk();
     validprogram = true;
     interpret();
-    lastcanvaswidth = 300;
-    lastcanvasheight = 300;
+
 }
 
 proceduralgrapherDialog::~proceduralgrapherDialog()
@@ -303,6 +399,7 @@ void proceduralgrapherDialog::interpret()
     {
          try {
             interpreter interp(funcs, parserdata);
+            interp_ptr = &interp;
             interp.evaluate(program);
         }
         catch (token_type_enum t)
@@ -364,11 +461,11 @@ void proceduralgrapherDialog::init2d()
     glColor3f(0.5, 0.5, 0.5);
     if(chkGrid->GetValue())
     {
-        double stepx = pow(2, floor(log((parserdata.right - parserdata.left) * 300.00001 / lastcanvaswidth) / log(2))) / 4;
+        double stepx = pow(2, floor(log((parserdata.right - parserdata.left) * 300.00001 / (double)lastcanvaswidth) / log(2))) / 4.0;
         for(double x = floor(parserdata.left/ stepx) * stepx; x < parserdata.right; x+= stepx)
             line2(x, parserdata.top, x, parserdata.bottom);
 
-        double stepy = pow(2, floor(log((parserdata.top - parserdata.bottom) * 300.00001 / lastcanvasheight) / log(2))) / 4;
+        double stepy = pow(2, floor(log((parserdata.top - parserdata.bottom) * 300.00001 / (double)lastcanvasheight) / log(2))) / 4.0;
         for(double y = floor(parserdata.bottom / stepy) * stepy; y < parserdata.top; y += stepy)
             line2(parserdata.left, y, parserdata.right, y);
         glColor3f(1, 0, 0);

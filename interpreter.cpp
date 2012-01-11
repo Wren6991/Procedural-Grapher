@@ -1,5 +1,6 @@
 #include "interpreter.h"
 #include <wx/glcanvas.h>
+#include <algorithm>
 
 
 
@@ -14,7 +15,23 @@ interpreter::interpreter(std::map<std::string, dfuncd> funcs_, g_data data_)
 
 interpreter::~interpreter()
 {
-    //delete program;
+    std::map<std::string, tagged_value>::iterator iter;
+    for (iter = vars.begin(); iter != vars.end(); iter++)
+        switch (iter->second.type)
+        {
+            case val_number:
+                break;
+            case val_string:
+                //delete iter->second.val.str;
+                break;
+            case val_procedure:
+                break;
+            case val_array:
+                break;
+            default:
+                break;
+        }
+
 }
 
 void interpreter::getnextcolor()
@@ -38,21 +55,29 @@ void interpreter::evaluate(statement* stat)
     switch(stat->type)
     {
         case t_while:
-            while (evaluate(stat->stat.whilestat->cond) > 0)
+            temp = evaluate(stat->stat.whilestat->cond);
+            while (temp.type == val_number && temp.val.n > 0)
                 evaluate(stat->stat.whilestat->whileblock);
             break;
         case t_for:
             int a, b;
-            a = evaluate(stat->stat.forstat->a);
-            b = evaluate(stat->stat.forstat->b);
+            temp = evaluate(stat->stat.forstat->a);
+            if (temp.type != val_number)
+                throw(error("Error: attempt to use non-numeric value as loop bound"));
+            a = temp.val.n;
+            temp = evaluate(stat->stat.forstat->b);
+            if (temp.type != val_number)
+                throw(error("Error: attempt to use non-numeric value as loop bound"));
+            b = temp.val.n;
             for (int i = a; i <= b; i++)
             {
-                vars[stat->stat.forstat->id] = i;
+                vars[stat->stat.forstat->id] = tagged_value((double)i);
                 evaluate(stat->stat.forstat->forblock);
             }
             break;
         case t_if:
-            if (evaluate(stat->stat.ifstat->cond) > 0)  //if first condition is true
+            temp = evaluate(stat->stat.ifstat->cond);
+            if (temp.type == val_number && temp.val.n > 0)  //if first condition is true
             {
                 evaluate(stat->stat.ifstat->ifblock);
             }
@@ -61,7 +86,8 @@ void interpreter::evaluate(statement* stat)
                 bool blocked = false;
                 for (unsigned int i = 0; i < stat->stat.ifstat->elseifs.size(); i++)     //for each elseif statement
                 {
-                    if (evaluate(stat->stat.ifstat->elseifs[i]->cond) > 0)  //if elseif condition is true
+                temp = evaluate(stat->stat.ifstat->cond);
+                    if (temp.type == val_number && temp.val.n > 0)  //if elseif condition is true
                     {
                         evaluate(stat->stat.ifstat->elseifs[i]->ifblock);        //evaluate block
                         blocked = true;
@@ -76,8 +102,8 @@ void interpreter::evaluate(statement* stat)
             if (stat->stat.assignstat->ismultiple)
             {
                 int n_ass = stat->stat.assignstat->extra_ids.size();
-                double singleval = evaluate(stat->stat.assignstat->rvalue);
-                double *vals = new double[n_ass];
+                tagged_value singleval = evaluate(stat->stat.assignstat->rvalue);
+                tagged_value *vals = new tagged_value[n_ass];
                 for (int i = 0; i < n_ass; i++)
                 {
                     vals[i] = evaluate(stat->stat.assignstat->extra_rvalues[i]);
@@ -103,12 +129,14 @@ void interpreter::evaluate(statement* stat)
             break;
         case t_def:
             std::cout << "Defining procedure " << stat->stat.defstat->name << "\n";
-            procedures[stat->stat.defstat->name] =  new procedure(stat->stat.defstat->args, stat->stat.defstat->entrypoint);
+            proc =  new procedure(stat->stat.defstat->args, stat->stat.defstat->entrypoint);
+            procedures.push_back(proc);
+            vars[stat->stat.defstat->name] = tagged_value(proc);
             break;
         case n_procedure:
-            if (procedures.find(stat->stat.procstat->name) == procedures.end()) //not defined
+            if (vars[stat->stat.procstat->name].type != val_procedure) //not defined
                 throw(n_procedure);
-            proc =  procedures[stat->stat.procstat->name];
+            proc = vars[stat->stat.procstat->name].val.proc;
 
             if(stat->stat.procstat->args.size() == proc->args.size())
             {
@@ -156,107 +184,121 @@ double max(double a, double b)
     return a > b ? a : b;
 }
 
-double interpreter::evaluate(expression *expr)
+tagged_value interpreter::evaluate(expression *expr)
 {
-    double total = evaluate(expr->comparisons[0]);
-    for(unsigned int i = 0; i < expr->operators.size(); i++)
+    tagged_value rv = evaluate(expr->comparisons[0]);
+    if (rv.type == val_number)
     {
-        if (expr->operators[i] == t_and)
-            total = min(total, evaluate(expr->comparisons[i + 1]));
-        else
-            total = max(total, evaluate(expr->comparisons[i + 1]));
+        for(unsigned int i = 0; i < expr->operators.size(); i++)
+        {
+            temp = evaluate(expr->comparisons[i + 1]);
+            if (temp.type != val_number)
+                throw(error("Error: attempt to compare number with non-number."));
+            if (expr->operators[i] == t_and)
+
+                rv.val.n = min(rv.val.n, temp.val.n);
+            else
+                rv.val.n = max(rv.val.n, temp.val.n);
+        }
     }
-    return total;
+    return rv;
 }
 
-double interpreter::evaluate(comparison *comp)
+tagged_value interpreter::evaluate(comparison *comp)
 {
-    double total = evaluate(comp->a);
+    tagged_value rv = evaluate(comp->a);    // rv => return value;
+    if (comp->oper == t_eof)
+        return rv;
+    temp = evaluate(comp->b);
+    if (temp.type != val_number)
+        throw(error("Error: attempt to compare number with non-number."));
     switch (comp->oper)
     {
-        case t_eof:
-            break;
         case t_lessthan:
-            total = evaluate(comp->b) - total;
-            receivedinequal = true;
+            rv.val.n = temp.val.n - rv.val.n;
             break;
         case t_greaterthan:
-            total = total - evaluate(comp->b);
-            receivedinequal = true;
+            rv.val.n = rv.val.n - temp.val.n;
             break;
         case t_lteq:
-            total = evaluate(comp->b) - total;
-            if (total == 0)
-                total = 0.00001;
-            receivedinequal = true;
-            receivedequals = true;
+            rv.val.n = temp.val.n - rv.val.n;
+            if (rv.val.n == 0)
+                rv.val.n = 0.00001;
             break;
         case t_gteq:
-            total = total - evaluate(comp->b);
-            if (total == 0)
-                total = 0.00001;
-            receivedinequal = true;
-            receivedequals = true;
+            rv.val.n = rv.val.n - temp.val.n;
+            if (rv.val.n == 0)
+                rv.val.n = 0.00001;
             break;
         case t_equals:
-            total = evaluate(comp->b) - total - 100000;
-            if(total == -100000)
-                total = 0.00001;
-            receivedequals = true;
+            rv.val.n = temp.val.n - rv.val.n - 100000;
+            if(rv.val.n == -100000)
+                rv.val.n = 0.00001;
             break;
         default:
             break;
     }
-    return total;
+    return rv;
 }
 
-double interpreter::evaluate(sum* s)
+tagged_value interpreter::evaluate(sum* s)
 {
-    double total = evaluate(s->terms[0]);
+    tagged_value rv = evaluate(s->terms[0]);
+    if (rv.type != val_number)
+        return rv;
     for(unsigned int i = 0; i < s->operators.size(); i++)
     {
+        temp = evaluate(s->terms[i + 1]);
+        if (temp.type != val_number)
+            throw(error("Error: attempted to perform arithmetic on non-number."));
         if (s->operators[i] == t_plus)
-            total += evaluate(s->terms[i + 1]);
+            rv.val.n += temp.val.n;
         else
-            total -= evaluate(s->terms[i + 1]);
+            rv.val.n -= temp.val.n;
     }
-    return total;
+    return rv;
 }
 
-double interpreter::evaluate(term* t)
+tagged_value interpreter::evaluate(term* t)
 {
-    double total = evaluate(t->values[0]);
+    tagged_value rv = evaluate(t->values[0]);
+    if (rv.type != val_number)
+        return rv;
     for(unsigned int i = 0; i < t->operators.size(); i++)
     {
+        temp = evaluate(t->values[i + 1]);
+        if (temp.type != val_number)
+            throw(error("Error: attempted to perform arithmetic on non-number."));
         if (t->operators[i] == t_times)
-            total *= evaluate(t->values[i + 1]);
+            rv.val.n *= temp.val.n;
         else
-            total /= evaluate(t->values[i + 1]);
+            rv.val.n /= temp.val.n;
     }
-    return total;
+    return rv;
 }
 
-double interpreter::evaluate(value *v)
+tagged_value interpreter::evaluate(value *v)
 {
-    double n;
+    tagged_value rv;
     switch (v->type)
     {
         case t_number:
-            n = v->n;
+            rv.type = val_number;
+            rv.val.n = v->n;
             break;
         case t_id:
-            n = vars[v->var];
+            rv = vars[v->var];
             break;
         case t_func:
-            n = funcs[v->funccall->name](evaluate(v->funccall->arg));
+            rv = funcs[v->funccall->name](evaluate(v->funccall->arg));
             break;
         case n_expression:
-            n = evaluate(v->expr);
+            rv = evaluate(v->expr);
             break;
         case n_procedure:
-            if (procedures.find(v->proccall->name) == procedures.end()) //not defined
+            if (vars[v->proccall->name].type != val_procedure) //not defined
                 throw(n_procedure);
-            proc =  procedures[v->proccall->name];
+            proc = vars[v->proccall->name].val.proc;
 
             if(v->proccall->args.size() == proc->args.size())
             {
@@ -272,7 +314,7 @@ double interpreter::evaluate(value *v)
                 {
                     if (t != t_return)
                         throw(t);
-                    n = returnvalue;
+                    rv = returnvalue;
                 }
             }
             else
@@ -284,21 +326,49 @@ double interpreter::evaluate(value *v)
             }
             break;
         case t_dif:
-            n = evaluate(v->b);
+            rv = evaluate(v->b);
+            if (rv.type != val_number)
+                throw(error("Error: attempt to differentiate non-numeric expression"));
             temp = vars[v->var];
-            vars[v->var] = temp + 0.00001;
-            n = (evaluate(v->b) - n) / 0.00001;
-            vars[v->var] = temp;
+            if (temp.type != val_number)
+                throw(error("Error: attempt to differentiate with respect to non-numeric variable"));
+            vars[v->var].val.n += 0.00001;
+            rv.val.n = (evaluate(v->b).val.n - rv.val.n) / 0.00001;
+            vars[v->var].val.n = temp.val.n;
+            break;
+        case t_string:
+            rv.type = val_string;
+            if (std::find(strings.begin(), strings.end(), v->var) == strings.end())
+            {
+                std::cout << "Pushing string \"" << v->var << "\"\n";
+                rv.val.str = strings.size();
+                strings.push_back(v->var);
+            }
+            else
+            {
+                rv.val.str = std::find(strings.begin(), strings.end(), v->var) - strings.begin();
+                std::cout << "Assigning existing string at index " << rv.val.str << "\n";
+            }
             break;
         default:
-            n = 0;
+            //n = 0;
             break;
     }
     if (v->expd)
-        n = pow(n, evaluate(v->b));
+    {
+        temp = evaluate(v->b);
+        if (rv.type != val_number || temp.type != val_number)
+             throw(error("Error: attempted to perform arithmetic on non-number."));
+        rv.val.n = pow(rv.val.n, temp.val.n);
+    }
+
     if (v->negative)
-        n = -n;
-    return n;
+    {
+        if (rv.type != val_number)
+             throw(error("Error: attempted to perform arithmetic on non-number."));
+        rv.val.n = -rv.val.n;
+    }
+    return rv;
 }
 
 void interpreter::evaluate(explicitplot* relation)
@@ -308,53 +378,65 @@ void interpreter::evaluate(explicitplot* relation)
     {
         if (relation->rangevar == "y")
         {
-            double x, y, lastx, lasty, step;
+            double x, lastx, lasty, step;
+            tagged_value y;
             x = data.left;
             step = (data.right - data.left)/data.detail;
-            vars["x"] = x;
+            vars["x"].type = val_number;
+            vars["x"].val.n = x;
             y = evaluate(relation->expr);
+            if (y.type != val_number)
+                throw(error("Error: attempt to plot non-numeric expression"));
             while(x < data.right + step)
             {
                 lastx = x;
-                lasty = y;
+                lasty = y.val.n;
                 x += step;
-                vars["x"] = x;
+                vars["x"].val.n = x;
                 y = evaluate(relation->expr);
-                line2(lastx, lasty, x, y);
+                line2(lastx, lasty, x, y.val.n);
             }
         }
         else if (relation->rangevar == "x")
         {
-            double x, y, lastx, lasty, step;
+            double y, lastx, lasty, step;
+            tagged_value x;
             y = data.bottom;
             step = (data.top - data.bottom)/data.detail;
-            vars["y"] = y;
+            vars["y"].type = val_number;
+            vars["y"].val.n = y;
             x = evaluate(relation->expr);
+            if (x.type != val_number)
+                throw(error("Error: attempt to plot non-numeric expression"));
             while(y < data.top + step)
             {
-                lastx = x;
+                lastx = x.val.n;
                 lasty = y;
                 y += step;
                 vars["y"] = y;
                 x = evaluate(relation->expr);
-                line2(lastx, lasty, x, y);
+                line2(lastx, lasty, x.val.n, y);
             }
         }
         else if (relation->rangevar == "r")
         {
-            double r, theta, lastr, lasttheta, step;
+            double  theta, lastr, lasttheta, step;
+            tagged_value r;
             theta = -10;
             step = 10.0/data.detail;
-            vars["theta"] = theta;
+            vars["theta"].type = val_number;
+            vars["theta"].val.n = theta;
             r = evaluate(relation->expr);
+            if (r.type != val_number)
+                throw(error("Error: attempt to plot non-numeric expression"));
             while(theta < 10 + step)
             {
-                lastr = r;
+                lastr = r.val.n;
                 lasttheta = theta;
                 theta += step;
-                vars["theta"] = theta;
+                vars["theta"].val.n = theta;
                 r = evaluate(relation->expr);
-                line2(lastr * cos(lasttheta), lastr * sin(lasttheta), r * cos(theta), r * sin(theta));
+                line2(lastr * cos(lasttheta), lastr * sin(lasttheta), r.val.n * cos(theta), r.val.n * sin(theta));
             }
         }
         else
@@ -373,15 +455,19 @@ void interpreter::evaluate(explicitplot* relation)
             double stepx = (data.right - data.left) / ncells;
             double stepz = (data.front - data.back) / ncells;
             double x, z;
+            vars["x"].type = val_number;
+            vars["z"].type = val_number;
+            if(evaluate(relation->expr).type != val_number)
+                throw(error("Error: attempt to plot non-numeric expression"));
             x = data.left - stepx;
             for (int i = 0; i < ncells + 3; i++)
             {
-                vars["x"] = x;
+                vars["x"].val.n = x;
                 z = data.back - stepz;
                 for(int j = 0; j < ncells + 3; j++)
                 {
-                    vars["z"] = z;
-                    grid[i][j] = evaluate(relation->expr);
+                    vars["z"].val.n = z;
+                    grid[i][j] = evaluate(relation->expr).val.n;
                     z += stepz;
                 }
                 x += stepx;
@@ -444,15 +530,19 @@ void interpreter::evaluate(explicitplot* relation)
             double stepy = (data.top - data.bottom) / ncells;
             double stepz = (data.front - data.back) / ncells;
             double y, z;
+            vars["y"].type = val_number;
+            vars["z"].type = val_number;
+            if(evaluate(relation->expr).type != val_number)
+                throw(error("Error: attempt to plot non-numeric expression"));
             y = data.bottom - stepy;
             for (int i = 0; i < ncells + 3; i++)
             {
-                vars["y"] = y;
+                vars["y"].val.n = y;
                 z = data.back - stepz;
                 for(int j = 0; j < ncells + 3; j++)
                 {
-                    vars["z"] = z;
-                    grid[i][j] = evaluate(relation->expr);
+                    vars["z"].val.n = z;
+                    grid[i][j] = evaluate(relation->expr).val.n;
                     z += stepz;
                 }
                 y += stepy;
@@ -515,15 +605,19 @@ void interpreter::evaluate(explicitplot* relation)
             double stepx = (data.right - data.left) / ncells;
             double stepy = (data.top - data.bottom) / ncells;
             double x, y;
+            vars["x"].type = val_number;
+            vars["y"].type = val_number;
+            if(evaluate(relation->expr).type != val_number)
+                throw(error("Error: attempt to plot non-numeric expression"));
             x = data.left - stepx;
             for (int i = 0; i < ncells + 3; i++)
             {
-                vars["x"] = x;
+                vars["x"].val.n = x;
                 y = data.bottom - stepy;
                 for(int j = 0; j < ncells + 3; j++)
                 {
-                    vars["y"] = y;
-                    grid[i][j] = evaluate(relation->expr);
+                    vars["y"].val.n = y;
+                    grid[i][j] = evaluate(relation->expr).val.n;
                     y += stepy;
                 }
                 x += stepx;
@@ -596,15 +690,19 @@ void interpreter::evaluate(implicitplot* relation)
     double stepx = (data.right - data.left) / (ncells - 1);
     double stepy = (data.top - data.bottom) / (ncells - 1);
     double x, y;
+    if(evaluate(relation->expr).type != val_number)
+        throw(error("Error: attempt to plot non-numeric expression"));
+    vars["x"].type = val_number;
+    vars["y"].type = val_number;
     x = floor(data.left/stepx) * stepx;
     for (int i = 0; i <= ncells; i++)
     {
-        vars["x"] = x;
+        vars["x"].val.n = x;
         y = floor(data.bottom/stepy) * stepy;
         for(int j = 0; j <= ncells; j++)
         {
-            vars["y"] = y;
-            grid[i][j] = evaluate(relation->expr);
+            vars["y"].val.n = y;
+            grid[i][j] = evaluate(relation->expr).val.n;
             if (equalsonly)
                 grid[i][j] = (grid[i][j] == 0.00001 ? -100000 : grid[i][j]) + 100000;   //undo logical value munging.
             y += stepy;
@@ -815,17 +913,29 @@ void interpreter::evaluate(parametricplot* parp)
     setcolor(data.currentcolor);
     double from, to, step;
     if (parp->givenfrom)
-        from = evaluate(parp->from);
+    {
+        if (evaluate(parp->from).type != val_number)
+            throw(error("Error: cannot have non-numeric interval bound"));
+        from = evaluate(parp->from).val.n;
+    }
     else
         from = -1;
 
     if (parp->givento)
-        to = evaluate(parp->to);
+    {
+        if (evaluate(parp->to).type != val_number)
+            throw(error("Error: cannot have non-numeric interval bound"));
+        to = evaluate(parp->to).val.n;
+    }
     else
         to = 1;
 
     if (parp->givenstep)
-        step = max(evaluate(parp->step), (to - from) / (data.detail * 500));
+    {
+        if (evaluate(parp->step).type != val_number)
+            throw(error("Error: cannot have non-numeric step size"));
+        step = max(evaluate(parp->step).val.n, (to - from) / data.detail / 100);
+    }
     else
         step = (to - from) / data.detail;
 
@@ -833,9 +943,13 @@ void interpreter::evaluate(parametricplot* parp)
     double t = from;
     vars[parp->parname] = t;
     for(int i = 0; i < nassignments; i++)
+    {
         vars[parp->assignments[i]->id] = evaluate(parp->assignments[i]->rvalue);
-    double lastx = vars["x"];
-    double lasty = vars["y"];
+        if (vars[parp->assignments[i]->id].type != val_number)
+            throw(error("Error: attempt to plot non-numeric expression"));
+    }
+    double lastx = vars["x"].val.n;
+    double lasty = vars["y"].val.n;
     double x, y;
     t = t + step;
     for(; t < to + step; t += step)
@@ -843,13 +957,30 @@ void interpreter::evaluate(parametricplot* parp)
         vars[parp->parname] = t;
         for(unsigned int i = 0; i < nassignments; i++)
             vars[parp->assignments[i]->id] = evaluate(parp->assignments[i]->rvalue);
-        x = vars["x"];
-        y = vars["y"];
+        x = vars["x"].val.n;
+        y = vars["y"].val.n;
         line2(lastx, lasty, x, y);
         lastx = x;
         lasty = y;
     }
     getnextcolor();
+}
+
+int interpreter::addstring(std::string str)
+{
+    std::vector<std::string>::iterator iter = std::find(strings.begin(), strings.end(), str);
+    if (iter == strings.end())
+    {
+        std::cout << "Pushing string \"" << str << "\"\n";
+        return strings.size();
+
+    }
+    else
+    {
+        std::cout << "Assigning existing string at index " << iter  - strings.begin() << "\n";
+        return iter - strings.begin();
+    }
+
 }
 
 procedure::procedure(){}
