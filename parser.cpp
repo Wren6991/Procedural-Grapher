@@ -694,12 +694,8 @@ value::~value()
 
 tagged_value::tagged_value()
 {
-<<<<<<< HEAD
     type = val_number;
     val.n = 0;
-=======
-    type = val_nil;
->>>>>>> c32bf9bb01dcddc399e710b2da3fa3a90d28b2fe
 }
 
 tagged_value::tagged_value(double n)
@@ -714,12 +710,4 @@ tagged_value::tagged_value(procedure* p)
     val.proc = p;
 }
 
-<<<<<<< HEAD
-=======
-tagged_value::tagged_value(int str)
-{
-    type = val_string;
-    val.str = str;
-}
->>>>>>> c32bf9bb01dcddc399e710b2da3fa3a90d28b2fe
 

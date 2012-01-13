@@ -50,14 +50,9 @@ class interpreter
     tagged_value returnvalue;
     std::map<std::string, tagged_value> vars;
     std::map<std::string, dfuncd> funcs;
-<<<<<<< HEAD
     std::vector <std::string> strings;
     std::vector < std::map <int, tagged_value> > arrays;
     std::vector <procedure*> procedures;    //pointers to procedures are maintained here for cleanup in destructor - actually called from vars map.
-=======
-    std::vector<std::string> strings;
-    std::vector <procedure*> procedures;     //pointers to procedures are maintained here for cleanup in destructor - actually called from vars map.
->>>>>>> c32bf9bb01dcddc399e710b2da3fa3a90d28b2fe
     g_data data;
     bool receivedequals;
     bool receivedinequal;

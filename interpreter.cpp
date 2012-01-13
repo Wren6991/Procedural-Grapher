@@ -39,7 +39,6 @@ interpreter::~interpreter()
                 break;
         }
 
-<<<<<<< HEAD
     for (int i = 0; i < arrays.size(); i++)
     {
         std::cout << "Enumerating array " << i << ":\n";
@@ -49,8 +48,6 @@ interpreter::~interpreter()
 
     }
 
-=======
->>>>>>> c32bf9bb01dcddc399e710b2da3fa3a90d28b2fe
 }
 
 void interpreter::getnextcolor()
@@ -84,21 +81,13 @@ void interpreter::evaluate(statement* stat)
             if (temp.type != val_number)
                 throw(error("Error: attempt to use non-numeric value as loop bound"));
             a = temp.val.n;
-<<<<<<< HEAD
             temp = evaluate(stat->stat.forstat->b);
-=======
-            temp = evaluate(stat->stat.forstat->a);
->>>>>>> c32bf9bb01dcddc399e710b2da3fa3a90d28b2fe
             if (temp.type != val_number)
                 throw(error("Error: attempt to use non-numeric value as loop bound"));
             b = temp.val.n;
             for (int i = a; i <= b; i++)
             {
-<<<<<<< HEAD
                 vars[stat->stat.forstat->id] = tagged_value((double)i);
-=======
-                vars[stat->stat.forstat->id] = tagged_value(i);
->>>>>>> c32bf9bb01dcddc399e710b2da3fa3a90d28b2fe
                 evaluate(stat->stat.forstat->forblock);
             }
             break;
@@ -390,21 +379,7 @@ tagged_value interpreter::evaluate(value *v)
             break;
         case t_string:
             rv.type = val_string;
-<<<<<<< HEAD
             rv.val.str = addstring(v->var);
-=======
-            if (std::find(strings.begin(), strings.end(), v->var) == strings.end())
-            {
-                std::cout << "Pushing string \"" << v->var << "\"\n";
-                rv.val.str = strings.size();
-                strings.push_back(v->var);
-            }
-            else
-            {
-                rv.val.str = std::find(strings.begin(), strings.end(), v->var) - strings.begin();
-                std::cout << "Assigning existing string at index " << rv.val.str << "\n";
-            }
->>>>>>> c32bf9bb01dcddc399e710b2da3fa3a90d28b2fe
             break;
         default:
             //n = 0;
@@ -420,11 +395,7 @@ tagged_value interpreter::evaluate(value *v)
 
     if (v->negative)
     {
-<<<<<<< HEAD
         if (rv.type != val_number)
-=======
-        if (rv.type != val_number || temp.type != val_number)
->>>>>>> c32bf9bb01dcddc399e710b2da3fa3a90d28b2fe
              throw(error("Error: attempted to perform arithmetic on non-number."));
         rv.val.n = -rv.val.n;
     }
@@ -432,7 +403,7 @@ tagged_value interpreter::evaluate(value *v)
 }
 
 void interpreter::evaluate(explicitplot* relation)
-{/*
+{
     setcolor(data.currentcolor);
     if (!data.is3d)
     {
@@ -446,11 +417,7 @@ void interpreter::evaluate(explicitplot* relation)
             vars["x"].val.n = x;
             y = evaluate(relation->expr);
             if (y.type != val_number)
-<<<<<<< HEAD
                 throw(error("Error: attempt to plot non-numeric expression"));
-=======
-                throw(error("Error: attempt to plot non-nummeric expression"))
->>>>>>> c32bf9bb01dcddc399e710b2da3fa3a90d28b2fe
             while(x < data.right + step)
             {
                 lastx = x;
@@ -741,11 +708,11 @@ void interpreter::evaluate(explicitplot* relation)
         }
 
     }
-    getnextcolor();*/
+    getnextcolor();
 }
 
 void interpreter::evaluate(implicitplot* relation)
-{/*
+{
     bool equalsonly = relation->haseq && !relation->hasineq;
     int ncells = data.detail / 2 + 1;
     double** grid = new double*[ncells + 1];
@@ -969,11 +936,11 @@ void interpreter::evaluate(implicitplot* relation)
     getnextcolor();
     for (int i = 0; i <= ncells; i++)
         delete grid[i];
-    delete grid;*/
+    delete grid;
 }
 
 void interpreter::evaluate(parametricplot* parp)
-{/*
+{
     setcolor(data.currentcolor);
     double from, to, step;
     if (parp->givenfrom)
@@ -1027,7 +994,7 @@ void interpreter::evaluate(parametricplot* parp)
         lastx = x;
         lasty = y;
     }
-    getnextcolor();*/
+    getnextcolor();
 }
 
 int interpreter::addstring(std::string str)

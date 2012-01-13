@@ -29,7 +29,6 @@ class tagged_value
         double n;
         int str;    //index in interpreter's string table
         procedure* proc;
-<<<<<<< HEAD
         int arr;
     } val;
     tagged_value();
@@ -52,15 +51,6 @@ class arrayitem
     expression* index;
 };
 
-=======
-    } val;
-    tagged_value();
-    tagged_value(double);
-    tagged_value(int);
-    tagged_value(procedure*);
-};
-
->>>>>>> c32bf9bb01dcddc399e710b2da3fa3a90d28b2fe
 class value
 {
     public:

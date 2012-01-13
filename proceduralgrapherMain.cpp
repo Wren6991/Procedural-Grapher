@@ -192,7 +192,6 @@ tagged_value print_tv(tagged_value tv)
         (*OutputBox) << interp_ptr->strings[tv.val.str] << "\n";
     else
         throw(error("Error: expected number or string as argument to function \"print\""));
-<<<<<<< HEAD
     return tv;
 }
 
@@ -221,9 +220,6 @@ tagged_value char_tv(tagged_value tv)
         throw(error("Error: expected number as argument to function \"char\""));
 }
 
-=======
-}
->>>>>>> c32bf9bb01dcddc399e710b2da3fa3a90d28b2fe
 //helper functions
 enum wxbuildinfoformat {
     short_f, long_f };
@@ -376,11 +372,8 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     funcs["floor"] = floor_tv;
     funcs["ceil"] = ceil_tv;
     funcs["sqrt"] = sqrt_tv;
-<<<<<<< HEAD
     funcs["size"] = size_tv;
     funcs["char"] = char_tv;
-=======
->>>>>>> c32bf9bb01dcddc399e710b2da3fa3a90d28b2fe
     lastcanvaswidth = 300;
     lastcanvasheight = 300;
     tokens = tokenize(std::string("y = x^3 - x"), funcs);
