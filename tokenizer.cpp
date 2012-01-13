@@ -90,6 +90,14 @@ std::vector <token> tokenize(std::string str)
             goto lparen;
         else if (c == ')')
             goto rparen;
+        else if (c == '{')
+            goto lbrace;
+        else if (c == '}')
+            goto rbrace;
+        else if (c == '[')
+            goto lsquareb;
+        else if (c == ']')
+            goto rsquareb;
         else if (c == '^')
             goto exp;
         else if (c == ',')
@@ -141,6 +149,11 @@ std::vector <token> tokenize(std::string str)
                     goto start;
                 }
             }
+            else
+            {
+                tokens.push_back(token(t_id, "d"));
+                goto start;
+            }
         }
         else if (keywords.find(v) == keywords.end())
             tokens.push_back(token(t_id, v));
@@ -187,6 +200,22 @@ std::vector <token> tokenize(std::string str)
     comma:
         c = sbuf.next();
         tokens.push_back(token(t_comma, ","));
+        goto start;
+    lbrace:
+        c = sbuf.next();
+        tokens.push_back(token(t_lbrace, "{"));
+        goto start;
+    rbrace:
+        c = sbuf.next();
+        tokens.push_back(token(t_rbrace, "}"));
+        goto start;
+    lsquareb:
+        c = sbuf.next();
+        tokens.push_back(token(t_lsquareb, "["));
+        goto start;
+    rsquareb:
+        c = sbuf.next();
+        tokens.push_back(token(t_rsquareb, "]"));
         goto start;
     lessthan:
         c = sbuf.next();

@@ -206,8 +206,38 @@ value* parser::val()
         v->var = last.value;
         v->b = val();
     }
+    else if (accept(t_lbrace))
+    {
+        arrayinitializer* ai = new arrayinitializer;
+        v->type = t_lbrace;
+        v->arrinit = ai;
+        if (!accept(t_rbrace))
+            while (true)
+            {
+                ai->explist.push_back(expr());
+                if (!accept(t_comma))
+                {
+                    expect(t_rbrace);
+                    break;
+                }
+            }
+    }
     else
         throw(n_value);
+    while (accept(t_lsquareb))
+    {
+        value* a = new value;
+        a->type = t_lsquareb;
+        a->negative = false;
+        a->arritem = new arrayitem;
+        a->arritem->array = v;
+        a->arritem->index = expr();
+
+        v->expd = false;    //because we're about to hide v, so these won't be set below.
+        v = a;      //stuff v into a, make a the new v - previous array-index pair becomes new array. at the end,  we just return v; this is the top-level array-index pair. At runtime, top-level array is evaluated recursively.
+        expect(t_rsquareb);
+    }
+
     if(accept(t_exp))
     {
         v->expd = true;
@@ -266,7 +296,7 @@ statement* parser::stat()
             }
             expect(t_equals);
             a->rvalue = expr();
-            for (int i = 0; i < a->extra_ids.size(); i++)
+            for (unsigned int i = 0; i < a->extra_ids.size(); i++)
             {
                 expect(t_comma);
                 a->extra_rvalues.push_back(expr());
@@ -547,7 +577,7 @@ assignment::~assignment()
 {
     delete rvalue;
     if (ismultiple)
-        for (int i = 0; i < extra_rvalues.size(); i++)
+        for (unsigned int i = 0; i < extra_rvalues.size(); i++)
             delete extra_rvalues[i];
 }
 
@@ -651,6 +681,9 @@ value::~value()
             break;
         case n_procedure:
             delete proccall;
+            break;
+        case t_lbrace:
+            delete arrinit;
             break;
         default:
             break;

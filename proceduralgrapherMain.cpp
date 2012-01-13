@@ -73,6 +73,10 @@ std::string token_type_names[] = {
     "par",
     "from",
     "step",
+    "left brace",
+    "right brace",
+    "left squarebr.",
+    "right squarebr.",
     "no. tokens",
     "e_value",
     "e_nostatement",
@@ -188,7 +192,34 @@ tagged_value print_tv(tagged_value tv)
         (*OutputBox) << interp_ptr->strings[tv.val.str] << "\n";
     else
         throw(error("Error: expected number or string as argument to function \"print\""));
+    return tv;
 }
+
+tagged_value size_tv(tagged_value tv)
+{
+    if (tv.type == val_array)
+        return tagged_value(interp_ptr->arrays[tv.val.arr].size());
+    else if (tv.type == val_string)
+        return tagged_value(interp_ptr->strings[tv.val.str].size());
+    else
+        throw(error("Error: expected array or string as argument to function \"size\""));
+}
+
+tagged_value char_tv(tagged_value tv)
+{
+    if (tv.type == val_number)
+    {
+            tagged_value rv;
+            rv.type = val_string;
+            char str[] = {0, 0};
+            str[0] = static_cast <char> (tv.val.n);            //wow i'm tired
+            rv.val.str = interp_ptr->addstring(std::string(str));
+            return rv;
+    }
+    else
+        throw(error("Error: expected number as argument to function \"char\""));
+}
+
 //helper functions
 enum wxbuildinfoformat {
     short_f, long_f };
@@ -341,6 +372,8 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     funcs["floor"] = floor_tv;
     funcs["ceil"] = ceil_tv;
     funcs["sqrt"] = sqrt_tv;
+    funcs["size"] = size_tv;
+    funcs["char"] = char_tv;
     lastcanvaswidth = 300;
     lastcanvasheight = 300;
     tokens = tokenize(std::string("y = x^3 - x"), funcs);

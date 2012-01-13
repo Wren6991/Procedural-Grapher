@@ -2,6 +2,13 @@
 #include <wx/glcanvas.h>
 #include <algorithm>
 
+std::string val_names[] = {
+    "nil",
+    "number",
+    "string",
+    "procedure",
+    "array"
+    };
 
 
 interpreter::interpreter(std::map<std::string, dfuncd> funcs_, g_data data_)
@@ -31,6 +38,15 @@ interpreter::~interpreter()
             default:
                 break;
         }
+
+    for (int i = 0; i < arrays.size(); i++)
+    {
+        std::cout << "Enumerating array " << i << ":\n";
+        std::map<int, tagged_value>::iterator iter = arrays[i].begin();
+        for(; iter != arrays[i].end(); iter++)
+            std::cout << iter->first << ": (" << val_names[iter->second.type] << ") " << iter->second.val.str << "\n";
+
+    }
 
 }
 
@@ -325,6 +341,31 @@ tagged_value interpreter::evaluate(value *v)
                     throw(error(std::string("Error: too few arguments to procedure ") + v->proccall->name));
             }
             break;
+        case t_lsquareb:
+            rv = evaluate(v->arritem->array);
+            if (rv.type == val_string)
+            {
+                rv = tagged_value(static_cast <double> (strings[rv.val.str][evaluate(v->arritem->index).val.n]));
+            }
+            else if (rv.type != val_array)
+                throw(error("Error: attempt to index non-array"));
+            else
+                rv = arrays[rv.val.arr][floor(evaluate(v->arritem->index).val.n)];
+            break;
+        case t_lbrace:
+            rv.type = val_array;
+            rv.val.arr = arrays.size();
+            arrays.push_back(std::map<int, tagged_value>());
+            std::cout << "Creating array " << rv.val.arr << ":\n";
+            for (unsigned int i = 0; i < v->arrinit->explist.size(); i++)
+            {
+                temp = evaluate(v->arrinit->explist[i]);
+                arrays[rv.val.arr][i].type = temp.type;
+                arrays[rv.val.arr][i].val = temp.val;
+                std::cout << "Pushed " << val_names[arrays[rv.val.arr][i].type] << " to array " << rv.val.arr << "\n";
+            }
+            std::cout << "Created array " << rv.val.arr << ", size " << v->arrinit->explist.size() << "\n";
+            break;
         case t_dif:
             rv = evaluate(v->b);
             if (rv.type != val_number)
@@ -338,17 +379,7 @@ tagged_value interpreter::evaluate(value *v)
             break;
         case t_string:
             rv.type = val_string;
-            if (std::find(strings.begin(), strings.end(), v->var) == strings.end())
-            {
-                std::cout << "Pushing string \"" << v->var << "\"\n";
-                rv.val.str = strings.size();
-                strings.push_back(v->var);
-            }
-            else
-            {
-                rv.val.str = std::find(strings.begin(), strings.end(), v->var) - strings.begin();
-                std::cout << "Assigning existing string at index " << rv.val.str << "\n";
-            }
+            rv.val.str = addstring(v->var);
             break;
         default:
             //n = 0;
@@ -955,7 +986,7 @@ void interpreter::evaluate(parametricplot* parp)
     for(; t < to + step; t += step)
     {
         vars[parp->parname] = t;
-        for(unsigned int i = 0; i < nassignments; i++)
+        for(int i = 0; i < nassignments; i++)
             vars[parp->assignments[i]->id] = evaluate(parp->assignments[i]->rvalue);
         x = vars["x"].val.n;
         y = vars["y"].val.n;
@@ -972,7 +1003,8 @@ int interpreter::addstring(std::string str)
     if (iter == strings.end())
     {
         std::cout << "Pushing string \"" << str << "\"\n";
-        return strings.size();
+        strings.push_back(str);
+        return strings.size() - 1;
 
     }
     else
@@ -980,7 +1012,6 @@ int interpreter::addstring(std::string str)
         std::cout << "Assigning existing string at index " << iter  - strings.begin() << "\n";
         return iter - strings.begin();
     }
-
 }
 
 procedure::procedure(){}

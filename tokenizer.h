@@ -48,6 +48,10 @@ typedef enum {
     t_par,
     t_from,
     t_step,
+    t_lbrace,
+    t_rbrace,
+    t_lsquareb,
+    t_rsquareb,
     n_tokens,   //ought to end here really
     e_value,
     e_nostatement,

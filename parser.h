@@ -36,6 +36,21 @@ class tagged_value
     tagged_value(procedure*);
 };
 
+class value;
+
+class arrayinitializer
+{
+    public:
+    std::vector<expression*> explist;
+};
+
+class arrayitem
+{
+    public:
+    value* array;
+    expression* index;
+};
+
 class value
 {
     public:
@@ -47,6 +62,8 @@ class value
     expression* expr;
     procedurecall* proccall;
     functioncall* funccall;
+    arrayinitializer* arrinit;
+    arrayitem* arritem;
 
     bool expd;
     value* b;
