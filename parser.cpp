@@ -286,17 +286,67 @@ statement* parser::stat()
         {
             s->type = t_let;
             assignment *a = new assignment;
-            a->id = id;
+            a->lvalue.isarray = false;
+            a->lvalue.str = id;
+            if (t.type == t_lsquareb)
+            {
+                a->lvalue.isarray = true;
+                a->lvalue.ai = new arrayitem;
+                a->lvalue.ai->array = new value;
+                a->lvalue.ai->array->negative = false;
+                a->lvalue.ai->array->expd = false;
+                a->lvalue.ai->array->type = t_id;
+                a->lvalue.ai->array->var = id;
+                while (accept(t_lsquareb))
+                {
+                    value* arr = new value;
+                    arr->negative = false;
+                    arr->expd = false;
+                    arr->type = t_lsquareb;
+                    arr->arritem = new arrayitem;
+                    arr->arritem->array = a->lvalue.ai->array;
+                    arr->arritem->index = expr();
+                    a->lvalue.ai->array = arr;      //stuff old array inside arr, make arr the new array - previous array-index pair becomes new array. at the end,  we just return a; this is the top-level array-index pair. At runtime, top-level array is evaluated recursively.
+                    expect(t_rsquareb);
+                }
+            }
+
             a->ismultiple = false;
             while (accept(t_comma))
             {
                 a->ismultiple = true;
+                assg_lvalue lv;
+                lv.isarray = false;
                 expect(t_id);
-                a->extra_ids.push_back(last.value);
+                lv.str = last.value;
+                if (t.type == t_lsquareb)
+                {
+                    lv.isarray = true;
+                    lv.ai = new arrayitem;
+                    lv.ai->array = new value;
+                    lv.ai->array->negative = false;
+                    lv.ai->array->expd = false;
+                    lv.ai->array->type = t_id;
+                    lv.ai->array->var = lv.str;
+                    while (accept(t_lsquareb))
+                    {
+                        value* arr = new value;
+                        arr->negative = false;
+                        arr->expd = false;
+                        arr->type = t_lsquareb;
+                        arr->arritem = new arrayitem;
+                        arr->arritem->array = lv.ai->array;
+                        arr->arritem->index = expr();
+                        lv.ai->array = arr;      //stuff old array inside arr, make arr the new array - previous array-index pair becomes new array. at the end,  we just return a; this is the top-level array-index pair. At runtime, top-level array is evaluated recursively.
+                        expect(t_rsquareb);
+                    }
+
+                }
+                a->extra_lvalues.push_back(lv);
             }
             expect(t_equals);
             a->rvalue = expr();
-            for (unsigned int i = 0; i < a->extra_ids.size(); i++)
+            for (unsigned int i = 0; i < a->extra_lvalues.size(); i++)
             {
                 expect(t_comma);
                 a->extra_rvalues.push_back(expr());
@@ -325,6 +375,7 @@ statement* parser::stat()
         while(accept(t_elseif))
         {
             ifstatement *elseif = new ifstatement;
+            elseif->haselse = false;
             elseif->cond = expr();
             expect(t_then);
             elseif->ifblock = blk();
@@ -475,7 +526,8 @@ statement* parser::stat()
         while (accept(t_id))
         {
             assignment *a = new assignment;
-            a->id = last.value;
+            a->lvalue.str = last.value;
+            a->lvalue.isarray = false;
             expect(t_equals);
             a->rvalue = expr();
             p->assignments.push_back(a);
@@ -576,6 +628,8 @@ explicitplot::~explicitplot()
 assignment::~assignment()
 {
     delete rvalue;
+    if (lvalue.isarray)
+        delete lvalue.ai;
     if (ismultiple)
         for (unsigned int i = 0; i < extra_rvalues.size(); i++)
             delete extra_rvalues[i];
@@ -710,4 +764,13 @@ tagged_value::tagged_value(procedure* p)
     val.proc = p;
 }
 
+assg_lvalue::assg_lvalue()
+{
 
+}
+
+assg_lvalue::assg_lvalue(std::string str_)
+{
+    isarray = false;
+    str = str_;
+}

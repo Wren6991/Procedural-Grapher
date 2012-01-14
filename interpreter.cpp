@@ -39,14 +39,14 @@ interpreter::~interpreter()
                 break;
         }
 
-    for (int i = 0; i < arrays.size(); i++)
+    /*for (int i = 0; i < arrays.size(); i++)
     {
         std::cout << "Enumerating array " << i << ":\n";
         std::map<int, tagged_value>::iterator iter = arrays[i].begin();
         for(; iter != arrays[i].end(); iter++)
             std::cout << iter->first << ": (" << val_names[iter->second.type] << ") " << iter->second.val.str << "\n";
 
-    }
+    }*/
 
 }
 
@@ -73,7 +73,10 @@ void interpreter::evaluate(statement* stat)
         case t_while:
             temp = evaluate(stat->stat.whilestat->cond);
             while (temp.type == val_number && temp.val.n > 0)
+            {
                 evaluate(stat->stat.whilestat->whileblock);
+                temp = evaluate(stat->stat.whilestat->cond);
+            }
             break;
         case t_for:
             int a, b;
@@ -102,7 +105,7 @@ void interpreter::evaluate(statement* stat)
                 bool blocked = false;
                 for (unsigned int i = 0; i < stat->stat.ifstat->elseifs.size(); i++)     //for each elseif statement
                 {
-                temp = evaluate(stat->stat.ifstat->cond);
+                temp = evaluate(stat->stat.ifstat->elseifs[i]->cond);
                     if (temp.type == val_number && temp.val.n > 0)  //if elseif condition is true
                     {
                         evaluate(stat->stat.ifstat->elseifs[i]->ifblock);        //evaluate block
@@ -117,22 +120,41 @@ void interpreter::evaluate(statement* stat)
         case t_let:
             if (stat->stat.assignstat->ismultiple)
             {
-                int n_ass = stat->stat.assignstat->extra_ids.size();
+                int n_ass = stat->stat.assignstat->extra_lvalues.size();
                 tagged_value singleval = evaluate(stat->stat.assignstat->rvalue);
                 tagged_value *vals = new tagged_value[n_ass];
                 for (int i = 0; i < n_ass; i++)
                 {
                     vals[i] = evaluate(stat->stat.assignstat->extra_rvalues[i]);
                 }
-                vars[stat->stat.assignstat->id] = singleval;
+                vars[stat->stat.assignstat->lvalue.str] = singleval;
                 for (int i = 0; i < n_ass; i++)
                 {
-                    vars[stat->stat.assignstat->extra_ids[i]] = vals[i];
+                    if (!stat->stat.assignstat->extra_lvalues[i].isarray)
+                        vars[stat->stat.assignstat->extra_lvalues[i].str] = vals[i];
+                    else
+                    {
+                        temp = evaluate(stat->stat.assignstat->extra_lvalues[i].ai->array->arritem->array);
+                        if (temp.type != val_array)
+                             throw(error("Error: attempt to index non-array (" + val_names[temp.type] + ")"));
+                        std::cout << "Assigning to array " << temp.val.arr << ", index " << evaluate(stat->stat.assignstat->extra_lvalues[i].ai->array->arritem->array).val.n << "\n";
+                        arrays[temp.val.arr][evaluate(stat->stat.assignstat->extra_lvalues[i].ai->array->arritem->index).val.n] = vals[i];
+                    }
+
+                    vars[stat->stat.assignstat->extra_lvalues[i].str] = vals[i];
                 }
                 delete vals;
             }
             else
-                vars[stat->stat.assignstat->id] = evaluate(stat->stat.assignstat->rvalue);
+                if (!stat->stat.assignstat->lvalue.isarray)
+                    vars[stat->stat.assignstat->lvalue.str] = evaluate(stat->stat.assignstat->rvalue);
+                else
+                {
+                    temp = evaluate(stat->stat.assignstat->lvalue.ai->array->arritem->array);
+                    if (temp.type != val_array)
+                         throw(error("Error: attempt to index non-array (" + val_names[temp.type] + ")"));
+                    arrays[temp.val.arr][evaluate(stat->stat.assignstat->lvalue.ai->array->arritem->index).val.n] = evaluate(stat->stat.assignstat->rvalue);
+                }
             break;
         case t_func:
             funcs[stat->stat.funcstat->name](evaluate(stat->stat.funcstat->arg));
@@ -356,15 +378,15 @@ tagged_value interpreter::evaluate(value *v)
             rv.type = val_array;
             rv.val.arr = arrays.size();
             arrays.push_back(std::map<int, tagged_value>());
-            std::cout << "Creating array " << rv.val.arr << ":\n";
+            //std::cout << "Creating array " << rv.val.arr << ":\n";
             for (unsigned int i = 0; i < v->arrinit->explist.size(); i++)
             {
                 temp = evaluate(v->arrinit->explist[i]);
                 arrays[rv.val.arr][i].type = temp.type;
                 arrays[rv.val.arr][i].val = temp.val;
-                std::cout << "Pushed " << val_names[arrays[rv.val.arr][i].type] << " to array " << rv.val.arr << "\n";
+                //std::cout << "Pushed " << val_names[arrays[rv.val.arr][i].type] << " to array " << rv.val.arr << "\n";
             }
-            std::cout << "Created array " << rv.val.arr << ", size " << v->arrinit->explist.size() << "\n";
+            //std::cout << "Created array " << rv.val.arr << ", size " << v->arrinit->explist.size() << "\n";
             break;
         case t_dif:
             rv = evaluate(v->b);
@@ -975,8 +997,8 @@ void interpreter::evaluate(parametricplot* parp)
     vars[parp->parname] = t;
     for(int i = 0; i < nassignments; i++)
     {
-        vars[parp->assignments[i]->id] = evaluate(parp->assignments[i]->rvalue);
-        if (vars[parp->assignments[i]->id].type != val_number)
+        vars[parp->assignments[i]->lvalue.str] = evaluate(parp->assignments[i]->rvalue);
+        if (vars[parp->assignments[i]->lvalue.str].type != val_number)
             throw(error("Error: attempt to plot non-numeric expression"));
     }
     double lastx = vars["x"].val.n;
@@ -987,7 +1009,7 @@ void interpreter::evaluate(parametricplot* parp)
     {
         vars[parp->parname] = t;
         for(int i = 0; i < nassignments; i++)
-            vars[parp->assignments[i]->id] = evaluate(parp->assignments[i]->rvalue);
+            vars[parp->assignments[i]->lvalue.str] = evaluate(parp->assignments[i]->rvalue);
         x = vars["x"].val.n;
         y = vars["y"].val.n;
         line2(lastx, lasty, x, y);
@@ -1002,14 +1024,14 @@ int interpreter::addstring(std::string str)
     std::vector<std::string>::iterator iter = std::find(strings.begin(), strings.end(), str);
     if (iter == strings.end())
     {
-        std::cout << "Pushing string \"" << str << "\"\n";
+        //std::cout << "Pushing string \"" << str << "\"\n";
         strings.push_back(str);
         return strings.size() - 1;
 
     }
     else
     {
-        std::cout << "Assigning existing string at index " << iter  - strings.begin() << "\n";
+        //std::cout << "Assigning existing string at index " << iter  - strings.begin() << "\n";
         return iter - strings.begin();
     }
 }

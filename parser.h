@@ -165,13 +165,23 @@ class functioncall
     ~functioncall();
 };
 
+class assg_lvalue
+{
+    public:
+    bool isarray;
+    std::string str;
+    arrayitem* ai;
+    assg_lvalue();
+    assg_lvalue(std::string);
+};
+
 class assignment
 {
     public:
-    std::string id;
+    assg_lvalue lvalue;
     expression* rvalue;
     bool ismultiple;
-    std::vector <std::string> extra_ids;
+    std::vector <assg_lvalue> extra_lvalues;
     std::vector <expression*> extra_rvalues;
     ~assignment();
 };

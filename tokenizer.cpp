@@ -4,6 +4,8 @@
 
 #include "tokenizer.h"
 
+
+
 extern std::string token_type_names[];
 
 
@@ -31,7 +33,7 @@ char streambuffer::next()
 {
     if (streambuffer::index < streambuffer::size)
     {
-        std::cout << streambuffer::str[streambuffer::index];
+        //std::cout << streambuffer::str[streambuffer::index];
         return streambuffer::str[streambuffer::index++];
     }
     else
@@ -251,11 +253,11 @@ std::vector <token> tokenize(std::string str)
         goto start;
     lexed:
 
-    std::cout << "\n";
+    /*std::cout << "\n";
     for (unsigned int i = 0; i < tokens.size(); i++)
     {
-        std::cout << token_type_names[tokens[i].type] << ": " << tokens[i].value << "\n";
-    }
+        std::cout << i << " " << token_type_names[tokens[i].type] << ": " << tokens[i].value << "\n";
+    }*/
     return tokens;
 
 }
