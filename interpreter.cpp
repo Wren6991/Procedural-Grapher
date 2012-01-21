@@ -1261,7 +1261,7 @@ void interpreter::evaluate(implicitplot* relation)
     else
     {
         bool equalsonly = relation->haseq && !relation->hasineq;
-        int ncells = data.detail / 7 + 1;
+        int ncells = data.detail / 6 + 1;
         double*** grid = new double**[ncells + 3];
         for (int i = 0; i < ncells + 3; i++)
         {
@@ -1392,88 +1392,99 @@ void interpreter::evaluate(implicitplot* relation)
 
                         if (edges & 1)
                         {
-                            t = grid[i][lastj][lastk] / (grid[i][lastj][lastk] - grid[lasti][lastj][lastk])
+                            t = grid[i][lastj][lastk] / (grid[i][lastj][lastk] - grid[lasti][lastj][lastk]);
                             vertlist[0][0] = x - t * stepx;
                             vertlist[0][1] = lasty;
                             vertlist[0][2] = lastz;
-                            normallist[0] = normals[lasti][lastj][lastk];
+                            normallist[0] = normals[lasti][lastj][lastk] * t + normals[i][lastj][lastk] * (1 - t);
                         }
                         if (edges & 2)
                         {
+                            t = grid[i][j][lastk] / (grid[i][j][lastk] - grid[i][lastj][lastk]);
                             vertlist[1][0] = x;
-                            vertlist[1][1] = y - grid[i][j][lastk] / (grid[i][j][lastk] - grid[i][lastj][lastk]) * stepy;
+                            vertlist[1][1] = y - t * stepy;
                             vertlist[1][2] = lastz;
-                            normallist[1] = normals[lasti][lastj][lastk];
+                            normallist[1] = normals[i][lastj][lastk] * t + normals[i][j][lastk] * (1 - t);
                        }
                         if (edges & 4)
                         {
-                            vertlist[2][0] = x - grid[i][j][lastk] / (grid[i][j][lastk] - grid[lasti][j][lastk]) * stepx;
+                            t = grid[i][j][lastk] / (grid[i][j][lastk] - grid[lasti][j][lastk]);
+                            vertlist[2][0] = x - t * stepx;
                             vertlist[2][1] = y;
                             vertlist[2][2] = lastz;
-                            normallist[2] = normals[lasti][lastj][lastk];
+                            normallist[2] = normals[lasti][j][lastk] * t + normals[i][j][lastk] * (1 - t);
                         }
                         if (edges & 8)
                         {
+                            t = grid[lasti][j][lastk] / (grid[lasti][j][lastk] - grid[lasti][lastj][lastk]);
                             vertlist[3][0] = lastx;
-                            vertlist[3][1] = y - grid[lasti][j][lastk] / (grid[lasti][j][lastk] - grid[lasti][lastj][lastk]) * stepy;
+                            vertlist[3][1] = y - t * stepy;
                             vertlist[3][2] = lastz;
-                            normallist[3] = normals[lasti][lastj][lastk];
+                            normallist[3] = normals[lasti][lastj][lastk] * t + normals[lasti][j][lastk] * (1 - t);
                         }
                         if (edges & 16)
                         {
-                            vertlist[4][0] = x - grid[i][lastj][k] / (grid[i][lastj][k] - grid[lasti][lastj][k]) * stepx;
+                            t = grid[i][lastj][k] / (grid[i][lastj][k] - grid[lasti][lastj][k]);
+                            vertlist[4][0] = x - t * stepx;
                             vertlist[4][1] = lasty;
                             vertlist[4][2] = z;
-                            normallist[4] = normals[lasti][lastj][lastk];
+                            normallist[4] = normals[lasti][lastj][k] * t + normals[i][lastj][k] * (1 - t);
                         }
                         if (edges & 32)
                         {
+                            t = grid[i][j][k] / (grid[i][j][k] - grid[i][lastj][k]);
                             vertlist[5][0] = x;
-                            vertlist[5][1] = y - grid[i][j][k] / (grid[i][j][k] - grid[i][lastj][k]) * stepy;
+                            vertlist[5][1] = y - t * stepy;
                             vertlist[5][2] = z;
-                            normallist[5] = normals[lasti][lastj][lastk];
+                            normallist[5] = normals[i][lastj][k] * t + normals[i][j][k] * (1 - t);
                         }
                         if (edges & 64)
                         {
-                            vertlist[6][0] = x - grid[i][j][k] / (grid[i][j][k] - grid[lasti][j][k]) * stepx;
+                            t = grid[i][j][k] / (grid[i][j][k] - grid[lasti][j][k]);
+                            vertlist[6][0] = x - t * stepx;
                             vertlist[6][1] = y;
                             vertlist[6][2] = z;
-                            normallist[6] = normals[lasti][lastj][lastk];
+                            normallist[6] = normals[lasti][j][k] * t + normals[i][j][k] * (1 - t);
                         }
                         if (edges & 128)
                         {
+                            t = grid[lasti][j][k] / (grid[lasti][j][k] - grid[lasti][lastj][k]);
                             vertlist[7][0] = lastx;
-                            vertlist[7][1] = y - grid[lasti][j][k] / (grid[lasti][j][k] - grid[lasti][lastj][k]) * stepy;
+                            vertlist[7][1] = y - t * stepy;
                             vertlist[7][2] = z;
-                            normallist[7] = normals[lasti][lastj][lastk];
+                            normallist[7] = normals[lasti][lastj][k] * t + normals[lasti][j][k] * (1 - t);
                         }
                         if (edges & 256)
                         {
+                            t = grid[lasti][lastj][k] / (grid[lasti][lastj][k] - grid[lasti][lastj][lastk]);
                             vertlist[8][0] = lastx;
                             vertlist[8][1] = lasty;
-                            vertlist[8][2] = z - grid[lasti][lastj][k] / (grid[lasti][lastj][k] - grid[lasti][lastj][lastk]) * stepz;
-                            normallist[8] = normals[lasti][lastj][lastk];
+                            vertlist[8][2] = z - t * stepz;
+                            normallist[8] = normals[lasti][lastj][lastk] * t + normals[lasti][lastj][k] * (1 - t);
                         }
                         if (edges & 512)
                         {
+                            t = grid[i][lastj][k] / (grid[i][lastj][k] - grid[i][lastj][lastk]);
                             vertlist[9][0] = x;
                             vertlist[9][1] = lasty;
-                            vertlist[9][2] = z - grid[i][lastj][k] / (grid[i][lastj][k] - grid[i][lastj][lastk]) * stepz;
-                            normallist[9] = normals[lasti][lastj][lastk];
+                            vertlist[9][2] = z - t * stepz;
+                            normallist[9] = normals[i][lastj][lastk] * t + normals[i][lastj][k] * (1 - t);
                         }
                         if (edges & 1024)
                         {
+                            t = grid[i][j][k] / (grid[i][j][k] - grid[i][j][lastk]);
                             vertlist[10][0] = x;
                             vertlist[10][1] = y;
-                            vertlist[10][2] = z - grid[i][j][k] / (grid[i][j][k] - grid[i][j][lastk]) * stepz;
-                            normallist[10] = normals[lasti][lastj][lastk];
+                            vertlist[10][2] = z - t * stepz;
+                            normallist[10] = normals[i][j][lastk] * t + normals[i][j][k] * (1 - t);
                         }
                         if (edges & 2048)
                         {
+                            t = grid[lasti][j][k] / (grid[lasti][j][k] - grid[lasti][j][lastk]);
                             vertlist[11][0] = lastx;
                             vertlist[11][1] = y;
                             vertlist[11][2] = z - grid[lasti][j][k] / (grid[lasti][j][k] - grid[lasti][j][lastk]) * stepz;
-                            normallist[11] = normals[lasti][lastj][lastk];
+                            normallist[11] = normals[lasti][j][lastk] * t + normals[lasti][j][k] * (1 - t);
                         }
 
                         short* trilist = tri_table[mcase];
@@ -1553,26 +1564,61 @@ void interpreter::evaluate(parametricplot* parp)
     int nassignments = parp->assignments.size();
     double t = from;
     vars[parp->parname] = t;
-    for(int i = 0; i < nassignments; i++)
+    if (!data.is3d)
     {
-        vars[parp->assignments[i]->lvalue.str] = evaluate(parp->assignments[i]->rvalue);
-        if (vars[parp->assignments[i]->lvalue.str].type != val_number)
-            throw(error("Error: attempt to plot non-numeric expression"));
-    }
-    double lastx = vars["x"].val.n;
-    double lasty = vars["y"].val.n;
-    double x, y;
-    t = t + step;
-    for(; t < to + step; t += step)
-    {
-        vars[parp->parname] = t;
         for(int i = 0; i < nassignments; i++)
+        {
             vars[parp->assignments[i]->lvalue.str] = evaluate(parp->assignments[i]->rvalue);
-        x = vars["x"].val.n;
-        y = vars["y"].val.n;
-        line2(lastx, lasty, x, y);
-        lastx = x;
-        lasty = y;
+            if (vars[parp->assignments[i]->lvalue.str].type != val_number)
+                throw(error("Error: attempt to plot non-numeric expression"));
+        }
+        double lastx = vars["x"].val.n;
+        double lasty = vars["y"].val.n;
+        double x, y;
+        t = t + step;
+        for(; t < to + step; t += step)
+        {
+            vars[parp->parname] = t;
+            for(int i = 0; i < nassignments; i++)
+                vars[parp->assignments[i]->lvalue.str] = evaluate(parp->assignments[i]->rvalue);
+            x = vars["x"].val.n;
+            y = vars["y"].val.n;
+            line2(lastx, lasty, x, y);
+            lastx = x;
+            lasty = y;
+        }
+    }
+    else
+    {
+        glDisable(GL_LIGHTING);
+        glBegin(GL_LINES);
+        for(int i = 0; i < nassignments; i++)
+        {
+            vars[parp->assignments[i]->lvalue.str] = evaluate(parp->assignments[i]->rvalue);
+            if (vars[parp->assignments[i]->lvalue.str].type != val_number)
+                throw(error("Error: attempt to plot non-numeric expression"));
+        }
+        double lastx = vars["x"].val.n;
+        double lasty = vars["y"].val.n;
+        double lastz = vars["z"].val.n;
+        double x, y, z;
+        t = t + step;
+        for(; t < to + step; t += step)
+        {
+            vars[parp->parname] = t;
+            for(int i = 0; i < nassignments; i++)
+                vars[parp->assignments[i]->lvalue.str] = evaluate(parp->assignments[i]->rvalue);
+            x = vars["x"].val.n;
+            y = vars["y"].val.n;
+            z = vars["z"].val.n;
+            glVertex3f(lastx, lasty, lastz);
+            glVertex3f(x, y, z);
+            lastx = x;
+            lasty = y;
+            lastz = z;
+        }
+        glEnd();
+        glEnable(GL_LIGHTING);
     }
     getnextcolor();
 }

@@ -36,6 +36,12 @@ class tagged_value
     tagged_value(procedure*);
 };
 
+class arglist_member
+{
+    tagged_value v;
+
+}
+
 class value;
 
 class arrayinitializer

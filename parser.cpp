@@ -19,7 +19,6 @@
 //  make predefined functions first-class values
 //  allow predefined functions to take multiple arguments
 //  mouse tracing and intersections
-//  3d implicit
 //  shunting yard?
 //  fixed expressions (evaluate at parse time, then never again)
 ///////////<Won't>/////////////
