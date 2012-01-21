@@ -20,6 +20,8 @@ class vert3f
     float z;
     vert3f();
     vert3f(float, float, float);
+    vert3f operator+(vert3f);
+    vert3f operator*(double);
 };
 
 vert3f normalize(vert3f);

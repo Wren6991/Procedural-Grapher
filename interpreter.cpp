@@ -305,6 +305,7 @@ short tri_table[256][16] =
 {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
 double vertlist[12][3];
+vert3f normallist[12];
 
 
 interpreter::interpreter(std::map<std::string, dfuncd> funcs_, g_data data_)
@@ -1261,12 +1262,12 @@ void interpreter::evaluate(implicitplot* relation)
     {
         bool equalsonly = relation->haseq && !relation->hasineq;
         int ncells = data.detail / 7 + 1;
-        double*** grid = new double**[ncells + 1];
-        for (int i = 0; i <= ncells; i++)
+        double*** grid = new double**[ncells + 3];
+        for (int i = 0; i < ncells + 3; i++)
         {
-            grid[i] = new double*[ncells + 1];
-            for(int j = 0; j <= ncells; j++)
-                grid[i][j] = new double[ncells + 1];
+            grid[i] = new double*[ncells + 3];
+            for(int j = 0; j < ncells + 3; j++)
+                grid[i][j] = new double[ncells + 3];
         }
 
         double stepx = (data.right - data.left) / (ncells - 1);
@@ -1278,16 +1279,16 @@ void interpreter::evaluate(implicitplot* relation)
         vars["x"].type = val_number;
         vars["y"].type = val_number;
         vars["z"].type = val_number;
-        x = floor(data.left/stepx) * stepx;
-        for (int i = 0; i <= ncells; i++)
+        x = floor(data.left/stepx) * stepx - stepx;
+        for (int i = 0; i < ncells + 3; i++)
         {
             vars["x"].val.n = x;
-            y = floor(data.bottom/stepy) * stepy;
-            for(int j = 0; j <= ncells; j++)
+            y = floor(data.bottom/stepy) * stepy - stepy;
+            for(int j = 0; j < ncells + 3; j++)
             {
                 vars["y"].val.n = y;
-                z = floor(data.back/stepz) * stepz;
-                for (int k = 0; k <= ncells; k++)
+                z = floor(data.back/stepz) * stepz - stepz;
+                for (int k = 0; k < ncells + 3; k++)
                 {
                     vars["z"].val.n = z;
                     grid[i][j][k] = evaluate(relation->expr).val.n;
@@ -1300,17 +1301,26 @@ void interpreter::evaluate(implicitplot* relation)
             x += stepx;
         }
 
+        vert3f*** normals = new vert3f**[ncells + 1];
+        for (int i = 0; i <= ncells; i++)
+        {
+            normals[i] = new vert3f*[ncells + 1];
+            for(int j = 0; j <= ncells; j++)
+                normals[i][j] = new vert3f[ncells + 1];
+        }
+
+
         x = floor(data.left/stepx) * stepx;
         setcolor(data.currentcolor);
         if (!(relation->haseq || relation->hasineq))
         {
-            for (int i = 0; i < ncells; i++)
+            for (int i = 2; i <= ncells + 1; i++)
             {
                 y = floor(data.bottom/stepy) * stepy;
-                for(int j = 0; j < ncells; j++)
+                for(int j = 2; j <= ncells + 1; j++)
                 {
                     z = floor(data.back/stepz) * stepz;
-                    for (int k = 0; k < ncells; k++)
+                    for (int k = 2; k <= ncells + 1; k++)
                     {
                         if (grid[i][j][k] >= 0)
                         {
@@ -1330,19 +1340,33 @@ void interpreter::evaluate(implicitplot* relation)
             int mcase, edges;
             double lastx, lasty, lastz;
             int lasti, lastj, lastk;
-            lasti = 0;
-            lastx = floor(data.left/stepx) * stepx;
-            for (int i = 1; i <= ncells; i++)
+            for (int i = 1; i <= ncells + 1; i++)
             {
-                lastj = 0;
+                for(int j = 1; j <= ncells + 1; j++)
+                {
+                    for (int k = 1; k <= ncells + 1; k++)
+                    {
+                        normals[i - 1][j - 1][k - 1] = vert3f(
+                                                              grid[i+1][j  ][k  ] - grid[i-1][j  ][k  ],
+                                                              grid[i  ][j+1][k  ] - grid[i  ][j-1][k  ],
+                                                              grid[i  ][j  ][k+1] - grid[i  ][j  ][k-1]
+                                                              );
+                    }
+                }
+            }
+            lasti = 1;
+            lastx = floor(data.left/stepx) * stepx;
+            for (int i = 2; i < ncells + 1; i++)       // starts at 2 because we use the right vertex (so we can use "last" values), and there is a padding cell to the left used in normal calculations.
+            {                                          // first sampled value is at 1; left edge, plus one padding (because lasti is initialized to 1)
+                lastj = 1;
                 x = lastx + stepx;
                 lasty = floor(data.bottom/stepy) * stepy;
-                for(int j = 1; j <= ncells; j++)
+                for(int j = 2; j < ncells + 1; j++)
                 {
-                    lastk = 0;
+                    lastk = 1;
                     y = lasty + stepy;
                     lastz = floor(data.back/stepz) * stepz;
-                    for (int k = 1; k <= ncells; k++)
+                    for (int k = 2; k < ncells + 1; k++)
                     {
                         z = lastz + stepz;
                         mcase = 0;
@@ -1364,87 +1388,104 @@ void interpreter::evaluate(implicitplot* relation)
                             mcase |= 128;
 
                         edges = edge_table[mcase];
+                        double t;
 
                         if (edges & 1)
                         {
-                            vertlist[0][0] = x - grid[i][lastj][lastk] / (grid[i][lastj][lastk] - grid[lasti][lastj][lastk]) * stepx;
+                            t = grid[i][lastj][lastk] / (grid[i][lastj][lastk] - grid[lasti][lastj][lastk])
+                            vertlist[0][0] = x - t * stepx;
                             vertlist[0][1] = lasty;
                             vertlist[0][2] = lastz;
+                            normallist[0] = normals[lasti][lastj][lastk];
                         }
                         if (edges & 2)
                         {
                             vertlist[1][0] = x;
                             vertlist[1][1] = y - grid[i][j][lastk] / (grid[i][j][lastk] - grid[i][lastj][lastk]) * stepy;
                             vertlist[1][2] = lastz;
-                        }
+                            normallist[1] = normals[lasti][lastj][lastk];
+                       }
                         if (edges & 4)
                         {
                             vertlist[2][0] = x - grid[i][j][lastk] / (grid[i][j][lastk] - grid[lasti][j][lastk]) * stepx;
                             vertlist[2][1] = y;
                             vertlist[2][2] = lastz;
+                            normallist[2] = normals[lasti][lastj][lastk];
                         }
                         if (edges & 8)
                         {
                             vertlist[3][0] = lastx;
                             vertlist[3][1] = y - grid[lasti][j][lastk] / (grid[lasti][j][lastk] - grid[lasti][lastj][lastk]) * stepy;
                             vertlist[3][2] = lastz;
+                            normallist[3] = normals[lasti][lastj][lastk];
                         }
                         if (edges & 16)
                         {
                             vertlist[4][0] = x - grid[i][lastj][k] / (grid[i][lastj][k] - grid[lasti][lastj][k]) * stepx;
                             vertlist[4][1] = lasty;
                             vertlist[4][2] = z;
+                            normallist[4] = normals[lasti][lastj][lastk];
                         }
                         if (edges & 32)
                         {
                             vertlist[5][0] = x;
                             vertlist[5][1] = y - grid[i][j][k] / (grid[i][j][k] - grid[i][lastj][k]) * stepy;
                             vertlist[5][2] = z;
+                            normallist[5] = normals[lasti][lastj][lastk];
                         }
                         if (edges & 64)
                         {
                             vertlist[6][0] = x - grid[i][j][k] / (grid[i][j][k] - grid[lasti][j][k]) * stepx;
                             vertlist[6][1] = y;
                             vertlist[6][2] = z;
+                            normallist[6] = normals[lasti][lastj][lastk];
                         }
                         if (edges & 128)
                         {
                             vertlist[7][0] = lastx;
                             vertlist[7][1] = y - grid[lasti][j][k] / (grid[lasti][j][k] - grid[lasti][lastj][k]) * stepy;
                             vertlist[7][2] = z;
+                            normallist[7] = normals[lasti][lastj][lastk];
                         }
                         if (edges & 256)
                         {
                             vertlist[8][0] = lastx;
                             vertlist[8][1] = lasty;
                             vertlist[8][2] = z - grid[lasti][lastj][k] / (grid[lasti][lastj][k] - grid[lasti][lastj][lastk]) * stepz;
+                            normallist[8] = normals[lasti][lastj][lastk];
                         }
                         if (edges & 512)
                         {
                             vertlist[9][0] = x;
                             vertlist[9][1] = lasty;
                             vertlist[9][2] = z - grid[i][lastj][k] / (grid[i][lastj][k] - grid[i][lastj][lastk]) * stepz;
+                            normallist[9] = normals[lasti][lastj][lastk];
                         }
                         if (edges & 1024)
                         {
                             vertlist[10][0] = x;
                             vertlist[10][1] = y;
                             vertlist[10][2] = z - grid[i][j][k] / (grid[i][j][k] - grid[i][j][lastk]) * stepz;
+                            normallist[10] = normals[lasti][lastj][lastk];
                         }
                         if (edges & 2048)
                         {
                             vertlist[11][0] = lastx;
                             vertlist[11][1] = y;
                             vertlist[11][2] = z - grid[lasti][j][k] / (grid[lasti][j][k] - grid[lasti][j][lastk]) * stepz;
+                            normallist[11] = normals[lasti][lastj][lastk];
                         }
 
                         short* trilist = tri_table[mcase];
                         glBegin(GL_TRIANGLES);
                         for (int i = 0; trilist[i] != -1; i += 3)
                         {
-                            glVertex3f(vertlist[trilist[i  ]][0], vertlist[trilist[i  ]][1], vertlist[trilist[i  ]][2]);
-                            glVertex3f(vertlist[trilist[i+1]][0], vertlist[trilist[i+1]][1], vertlist[trilist[i+1]][2]);
-                            glVertex3f(vertlist[trilist[i+2]][0], vertlist[trilist[i+2]][1], vertlist[trilist[i+2]][2]);
+                            glNormal3f(normallist[trilist[i  ]].x,normallist[trilist[i  ]].y,normallist[trilist[i  ]].z);
+                            glVertex3f(  vertlist[trilist[i  ]][0], vertlist[trilist[i  ]][1], vertlist[trilist[i  ]][2]);
+                            glNormal3f(normallist[trilist[i+1]].x,normallist[trilist[i+1]].y,normallist[trilist[i+1]].z);
+                            glVertex3f(  vertlist[trilist[i+1]][0], vertlist[trilist[i+1]][1], vertlist[trilist[i+1]][2]);
+                            glNormal3f(normallist[trilist[i+2]].x,normallist[trilist[i+2]].y,normallist[trilist[i+2]].z);
+                            glVertex3f(  vertlist[trilist[i+2]][0], vertlist[trilist[i+2]][1], vertlist[trilist[i+2]][2]);
                         }
                         glEnd();
                         lastz = z;
@@ -1457,13 +1498,22 @@ void interpreter::evaluate(implicitplot* relation)
                 lasti = i;
             }
         }
-        for (int i = 0; i <= ncells; i++)
+        for (int i = 0; i < ncells + 3; i++)
         {
-            for(int j = 0; j <= ncells; j++)
+            for(int j = 0; j < ncells + 3; j++)
                 delete grid[i][j];
             delete grid[i];
         }
         delete grid;
+
+        for (int i = 0; i < ncells + 1; i++)
+        {
+            for(int j = 0; j < ncells + 1; j++)
+                delete normals[i][j];
+            delete normals[i];
+        }
+        delete normals;
+
     }
     getnextcolor();
 

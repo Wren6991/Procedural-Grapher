@@ -23,6 +23,15 @@ vert3f::vert3f(float x_, float y_, float z_)
     z = z_;
 }
 
+vert3f vert3f::operator+(vert3f v)
+{
+    return vert3f(x + v.x, y + v.y, z + v.z);
+}
+vert3f vert3f::operator*(double s)
+{
+    return vert3f(x*s, y*s, z*s);
+}
+
 vert3f normalize(vert3f v)
 {
     float dist = sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
