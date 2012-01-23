@@ -426,21 +426,28 @@ void interpreter::evaluate(statement* stat)
                 {
                     vals[i] = evaluate(stat->stat.assignstat->extra_rvalues[i]);
                 }
-                vars[stat->stat.assignstat->lvalue.str] = singleval;
+                if (!stat->stat.assignstat->lvalue.isarray)
+                    vars[stat->stat.assignstat->lvalue.str] = singleval;
+                else
+                {
+                    temp = evaluate(stat->stat.assignstat->lvalue.ai->array->arritem->array);
+                    if (temp.type != val_array)
+                        throw(error("Error: attempt to index non-array (" + val_names[temp.type] + ")"));
+                    arrays[temp.val.arr][evaluate(stat->stat.assignstat->lvalue.ai->array->arritem->index).val.n] = singleval;
+                }
                 for (int i = 0; i < n_ass; i++)
                 {
                     if (!stat->stat.assignstat->extra_lvalues[i].isarray)
                         vars[stat->stat.assignstat->extra_lvalues[i].str] = vals[i];
                     else
                     {
-                        temp = evaluate(stat->stat.assignstat->extra_lvalues[i].ai->array->arritem->array);
+                        temp = evaluate(stat->stat.assignstat->extra_lvalues[i].ai->array->arritem->array);     // array item -> value that contains the arrayitem -> arrayitem class (contains actual array and the index) -> actual array
                         if (temp.type != val_array)
                              throw(error("Error: attempt to index non-array (" + val_names[temp.type] + ")"));
-                        std::cout << "Assigning to array " << temp.val.arr << ", index " << evaluate(stat->stat.assignstat->extra_lvalues[i].ai->array->arritem->array).val.n << "\n";
+                        std::cout << "Assigning to array " << temp.val.arr << ", index " << evaluate(stat->stat.assignstat->extra_lvalues[i].ai->array->arritem->index).val.n << ", type " << val_names[vals[i].type] << "\n";
+
                         arrays[temp.val.arr][evaluate(stat->stat.assignstat->extra_lvalues[i].ai->array->arritem->index).val.n] = vals[i];
                     }
-
-                    vars[stat->stat.assignstat->extra_lvalues[i].str] = vals[i];
                 }
                 delete vals;
             }
