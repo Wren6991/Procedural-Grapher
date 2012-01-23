@@ -32,6 +32,15 @@ typedef struct g_data {
     unsigned int colorindex;
     } g_data;
 
+class arglist_member
+{
+    public:
+    tagged_value v;
+    arglist_member* next;
+    arglist_member();
+    ~arglist_member();
+};
+
 class procedure
 {
     public:

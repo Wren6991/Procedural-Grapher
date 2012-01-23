@@ -96,123 +96,154 @@ double lnbodge(double x)
     else
         return log(-x) - 1000000;
 }
-tagged_value log_tv(tagged_value tv)
+tagged_value log_tv(arglist_member* arg)
 {
-    if (tv.type == val_number)
-        return tagged_value(lnbodge(tv.val.n));
+    if (arg == NULL)
+        throw(error("Error: expected more arguments to function \"ln\""));
+    if (arg->v.type == val_number)
+        return tagged_value(lnbodge(arg->v.val.n));
     else
         throw(error("Error: expected number as argument to function \"ln\""));
 }
 
-tagged_value sin_tv(tagged_value tv)
+tagged_value sin_tv(arglist_member* arg)
 {
-    if (tv.type == val_number)
-        return tagged_value(sin(tv.val.n));
+    if (arg == NULL)
+        throw(error("Error: expected more arguments to function \"sin\""));
+    if (arg->v.type == val_number)
+        return tagged_value(sin(arg->v.val.n));
     else
         throw(error("Error: expected number as argument to function \"sin\""));
 }
 
-tagged_value cos_tv(tagged_value tv)
+tagged_value cos_tv(arglist_member* arg)
 {
-    if (tv.type == val_number)
-        return tagged_value(cos(tv.val.n));
+    if (arg == NULL)
+        throw(error("Error: expected more arguments to function \"cos\""));
+    if (arg->v.type == val_number)
+        return tagged_value(cos(arg->v.val.n));
     else
         throw(error("Error: expected number as argument to function \"cos\""));
 }
 
-tagged_value tan_tv(tagged_value tv)
+tagged_value tan_tv(arglist_member* arg)
 {
-    if (tv.type == val_number)
-        return tagged_value(tan(tv.val.n));
+    if (arg == NULL)
+        throw(error("Error: expected more arguments to function \"tan\""));
+    if (arg->v.type == val_number)
+        return tagged_value(tan(arg->v.val.n));
     else
         throw(error("Error: expected number as argument to function \"tan\""));
 }
 
-tagged_value asin_tv(tagged_value tv)
+tagged_value asin_tv(arglist_member* arg)
 {
-    if (tv.type == val_number)
-        return tagged_value(asin(tv.val.n));
+    if (arg == NULL)
+        throw(error("Error: expected more arguments to function \"asin\""));
+    if (arg->v.type == val_number)
+        return tagged_value(asin(arg->v.val.n));
     else
         throw(error("Error: expected number as argument to function \"asin\""));
 }
 
-tagged_value acos_tv(tagged_value tv)
+tagged_value acos_tv(arglist_member* arg)
 {
-    if (tv.type == val_number)
-        return tagged_value(acos(tv.val.n));
+    if (arg == NULL)
+        throw(error("Error: expected more arguments to function \"acos\""));
+    if (arg->v.type == val_number)
+        return tagged_value(acos(arg->v.val.n));
     else
         throw(error("Error: expected number as argument to function \"acos\""));
 }
 
-tagged_value atan_tv(tagged_value tv)
+tagged_value atan_tv(arglist_member* arg)
 {
-    if (tv.type == val_number)
-        return tagged_value(atan(tv.val.n));
+    if (arg == NULL)
+        throw(error("Error: expected more arguments to function \"atan\""));
+    if (arg->v.type == val_number)
+        return tagged_value(atan(arg->v.val.n));
     else
         throw(error("Error: expected number as argument to function \"atan\""));
 }
 
-tagged_value abs_tv(tagged_value tv)
+tagged_value abs_tv(arglist_member* arg)
 {
-    if (tv.type == val_number)
-        return tagged_value(fabs(tv.val.n));
+    if (arg == NULL)
+        throw(error("Error: expected more arguments to function \"abs\""));
+    if (arg->v.type == val_number)
+        return tagged_value(fabs(arg->v.val.n));
     else
         throw(error("Error: expected number as argument to function \"abs\""));
 }
 
-tagged_value floor_tv(tagged_value tv)
+tagged_value floor_tv(arglist_member* arg)
 {
-    if (tv.type == val_number)
-        return tagged_value(floor(tv.val.n));
+    if (arg == NULL)
+        throw(error("Error: expected more arguments to function \"floor\""));
+    if (arg->v.type == val_number)
+        return tagged_value(floor(arg->v.val.n));
     else
         throw(error("Error: expected number as argument to function \"floor\""));
 }
 
-tagged_value ceil_tv(tagged_value tv)
+tagged_value ceil_tv(arglist_member* arg)
 {
-    if (tv.type == val_number)
-        return tagged_value(ceil(tv.val.n));
+    if (arg == NULL)
+        throw(error("Error: expected more arguments to function \"ceil\""));
+    if (arg->v.type == val_number)
+        return tagged_value(ceil(arg->v.val.n));
     else
         throw(error("Error: expected number as argument to function \"ceil\""));
 }
 
-tagged_value sqrt_tv(tagged_value tv)
+tagged_value sqrt_tv(arglist_member* arg)
 {
-    if (tv.type == val_number)
-        return tagged_value(sqrt(tv.val.n));
+    if (arg == NULL)
+        throw(error("Error: expected more arguments to function \"sqrt\""));
+    if (arg->v.type == val_number)
+        return tagged_value(sqrt(arg->v.val.n));
     else
         throw(error("Error: expected number as argument to function \"sqrt\""));
 }
 
-tagged_value print_tv(tagged_value tv)
+tagged_value print_tv(arglist_member* arg)
 {
-    if (tv.type == val_number)
-        (*OutputBox) << tv.val.n << "\n";
-    else if (tv.type == val_string)
-        (*OutputBox) << interp_ptr->strings[tv.val.str] << "\n";
-    else
-        throw(error("Error: expected number or string as argument to function \"print\""));
-    return tv;
+    while (arg != NULL)
+    {
+        if (arg->v.type == val_number)
+            (*OutputBox) << arg->v.val.n;
+        else if (arg->v.type == val_string)
+            (*OutputBox) << interp_ptr->strings[arg->v.val.str];
+        else
+            throw(error("Error: expected number or string as argument to function \"print\""));
+        arg = arg->next;
+    }
+    (*OutputBox) << "\n";
+    return tagged_value();
 }
 
-tagged_value size_tv(tagged_value tv)
+tagged_value size_tv(arglist_member* arg)
 {
-    if (tv.type == val_array)
-        return tagged_value(interp_ptr->arrays[tv.val.arr].size());
-    else if (tv.type == val_string)
-        return tagged_value(interp_ptr->strings[tv.val.str].size());
+    if (arg == NULL)
+        throw(error("Error: expected more arguments to function \"ln\""));
+    if (arg->v.type == val_array)
+        return tagged_value(interp_ptr->arrays[arg->v.val.arr].size());
+    else if (arg->v.type == val_string)
+        return tagged_value(interp_ptr->strings[arg->v.val.str].size());
     else
         throw(error("Error: expected array or string as argument to function \"size\""));
 }
 
-tagged_value char_tv(tagged_value tv)
+tagged_value char_tv(arglist_member* arg)
 {
-    if (tv.type == val_number)
+    if (arg == NULL)
+        throw(error("Error: expected more arguments to function \"ln\""));
+    if (arg->v.type == val_number)
     {
             tagged_value rv;
             rv.type = val_string;
             char str[] = {0, 0};
-            str[0] = static_cast <char> (tv.val.n);            //wow i'm tired
+            str[0] = static_cast <char> (arg->v.val.n);            //wow i'm tired
             rv.val.str = interp_ptr->addstring(std::string(str));
             return rv;
     }
@@ -220,6 +251,31 @@ tagged_value char_tv(tagged_value tv)
         throw(error("Error: expected number as argument to function \"char\""));
 }
 
+tagged_value rand_tv(arglist_member* arg)
+{
+    if (arg == NULL)
+        return tagged_value(rand() / (float)RAND_MAX);
+    else
+    {
+        if (arg->v.type != val_number)
+            throw(error("Error: expected number as argument to function \"char\""));
+        return tagged_value(rand() % static_cast <int> (arg->v.val.n));
+    }
+}
+
+tagged_value prng_tv(arglist_member *arg)
+{
+    srand(123456789);
+    while (arg != NULL)
+    {
+        srand(arg->v.val.n * 10267 * (arg->v.val.n + 3571) + rand() * (arg->v.val.n - 7057));
+        rand();
+        arg = arg->next;
+
+    }
+    return tagged_value(rand() / (float)RAND_MAX);
+
+}
 //helper functions
 enum wxbuildinfoformat {
     short_f, long_f };
@@ -374,6 +430,8 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     funcs["sqrt"] = sqrt_tv;
     funcs["size"] = size_tv;
     funcs["char"] = char_tv;
+    funcs["rand"] = rand_tv;
+    funcs["prng"] = prng_tv;
     lastcanvaswidth = 300;
     lastcanvasheight = 300;
     tokens = tokenize(std::string("y = x^3 - x"), funcs);

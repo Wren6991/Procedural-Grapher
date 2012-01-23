@@ -315,6 +315,8 @@ interpreter::interpreter(std::map<std::string, dfuncd> funcs_, g_data data_)
     vars["mousex"] = data.mousex;
     vars["mousey"] = data.mousey;
     vars["time"] = data.time / 1000.0;
+    vars["pi"] = 3.14159265358979323846264338327950288419716939937510;
+    vars["e"] = 2.71828183;
 }
 
 interpreter::~interpreter()
@@ -365,7 +367,7 @@ void interpreter::evaluate(block* blk)
 
 void interpreter::evaluate(statement* stat)
 {
-    switch(stat->type)
+   switch(stat->type)
     {
         case t_while:
             temp = evaluate(stat->stat.whilestat->cond);
@@ -454,8 +456,30 @@ void interpreter::evaluate(statement* stat)
                 }
             break;
         case t_func:
-            funcs[stat->stat.funcstat->name](evaluate(stat->stat.funcstat->arg));
+        {
+            arglist_member* arglist_top;
+            arglist_member* arglist_current;
+            arglist_member* arglist_next;
+            arglist_top = NULL;
+            if (stat->stat.funcstat->args.size() > 0)
+            {
+                arglist_top = new arglist_member;
+                arglist_top->v = evaluate(stat->stat.funcstat->args[0]);
+                arglist_current = arglist_top;
+            }
+            for (unsigned int i = 1; i < stat->stat.funcstat->args.size(); i++)
+            {
+                arglist_next = new arglist_member;
+                arglist_next->v = evaluate(stat->stat.funcstat->args[i]);
+                arglist_current->next = arglist_next;
+                arglist_current = arglist_next;
+            }
+            arglist_current->next = NULL;
+            funcs[stat->stat.funcstat->name](arglist_top);
+            if (arglist_top != NULL)
+                delete arglist_top;
             break;
+        }
         case s_plot_exp:
             evaluate(stat->stat.expplot);
             break;
@@ -625,12 +649,37 @@ tagged_value interpreter::evaluate(value *v)
             rv = vars[v->var];
             break;
         case t_func:
-            rv = funcs[v->funccall->name](evaluate(v->funccall->arg));
+        {
+            arglist_member* arglist_top;
+            arglist_member* arglist_current;
+            arglist_member* arglist_next;
+            arglist_top = NULL;
+            if (v->funccall->args.size() > 0)
+            {
+                arglist_top = new arglist_member;
+                arglist_top->v = evaluate(v->funccall->args[0]);
+                arglist_current = arglist_top;
+            }
+            for (unsigned int i = 1; i < v->funccall->args.size(); i++)
+            {
+                arglist_next = new arglist_member;
+                arglist_next->v = evaluate(v->funccall->args[i]);
+                arglist_current->next = arglist_next;
+                arglist_current = arglist_next;
+                arglist_current->next = NULL;
+            }
+
+            rv = funcs[v->funccall->name](arglist_top);
+            if (arglist_top != NULL)
+                delete arglist_top;
             break;
+        }
         case n_expression:
             rv = evaluate(v->expr);
             break;
         case n_procedure:
+        {
+            std::map <std::string, tagged_value> temps;
             if (vars[v->proccall->name].type != val_procedure) //not defined
                 throw(n_procedure);
             proc = vars[v->proccall->name].val.proc;
@@ -639,6 +688,7 @@ tagged_value interpreter::evaluate(value *v)
             {
                 for (unsigned int i = 0; i < proc->args.size(); i++)
                 {
+                    temps[proc->args[i]] = vars[proc->args[i]];
                     vars[proc->args[i]] = evaluate(v->proccall->args[i]);
                 }
                 try
@@ -651,6 +701,10 @@ tagged_value interpreter::evaluate(value *v)
                         throw(t);
                     rv = returnvalue;
                 }
+                for (std::map <std::string, tagged_value>::iterator iter = temps.begin(); iter != temps.end(); iter++)
+                {
+                    vars[iter->first] = iter->second;
+                }
             }
             else
             {
@@ -660,6 +714,7 @@ tagged_value interpreter::evaluate(value *v)
                     throw(error(std::string("Error: too few arguments to procedure ") + v->proccall->name));
             }
             break;
+        }
         case t_lsquareb:
             rv = evaluate(v->arritem->array);
             if (rv.type == val_string)
@@ -1354,6 +1409,7 @@ void interpreter::evaluate(implicitplot* relation)
                     }
                 }
             }
+            glBegin(GL_TRIANGLES);
             lasti = 1;
             lastx = floor(data.left/stepx) * stepx;
             for (int i = 2; i < ncells + 1; i++)       // starts at 2 because we use the right vertex (so we can use "last" values), and there is a padding cell to the left used in normal calculations.
@@ -1488,7 +1544,6 @@ void interpreter::evaluate(implicitplot* relation)
                         }
 
                         short* trilist = tri_table[mcase];
-                        glBegin(GL_TRIANGLES);
                         for (int i = 0; trilist[i] != -1; i += 3)
                         {
                             glNormal3f(normallist[trilist[i  ]].x,normallist[trilist[i  ]].y,normallist[trilist[i  ]].z);
@@ -1498,7 +1553,6 @@ void interpreter::evaluate(implicitplot* relation)
                             glNormal3f(normallist[trilist[i+2]].x,normallist[trilist[i+2]].y,normallist[trilist[i+2]].z);
                             glVertex3f(  vertlist[trilist[i+2]][0], vertlist[trilist[i+2]][1], vertlist[trilist[i+2]][2]);
                         }
-                        glEnd();
                         lastz = z;
                         lastk = k;
                     }
@@ -1509,6 +1563,7 @@ void interpreter::evaluate(implicitplot* relation)
                 lasti = i;
             }
         }
+        glEnd();
         for (int i = 0; i < ncells + 3; i++)
         {
             for(int j = 0; j < ncells + 3; j++)
@@ -1657,4 +1712,15 @@ procedure::~procedure()
 error::error(std::string errstring_)
 {
     errstring = errstring_;
+}
+
+arglist_member::arglist_member()
+{
+    next = NULL;
+}
+
+arglist_member::~arglist_member()
+{
+    if (next != NULL)
+        delete next;
 }

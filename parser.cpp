@@ -9,22 +9,22 @@
 
 
 ////////////<Must>/////////////
-//
+//  fix array multiple assignments
 ///////////<Should>////////////
-//  arrays (+ type system?)
 //  file dialogs
 //  settings
 //  local variables - either stack of maps, or store original values in a vector at call time and restore after return.
 ///////////<Could>/////////////
+//  persistent variables
 //  make predefined functions first-class values
 //  allow predefined functions to take multiple arguments
 //  mouse tracing and intersections
-//  shunting yard?
 //  fixed expressions (evaluate at parse time, then never again)
 ///////////<Won't>/////////////
 //  I should probably put something in here
 //  solve p v ¬p
 //  how about that
+//  shunting yard?
 ///////////////////////////////
 
 parser::parser(){}
@@ -183,8 +183,15 @@ value* parser::val()
         functioncall *f = new functioncall;
         f->name = last.value;
         expect(t_lparen);
-        f->arg = expr();
-        expect(t_rparen);
+        while (!accept(t_rparen))
+        {
+            f->args.push_back(expr());
+            if (!accept(t_comma))
+            {
+                expect(t_rparen);
+                break;
+            }
+        }
         v->funccall = f;
     }
     else if (accept(t_lparen))
@@ -411,8 +418,15 @@ statement* parser::stat()
         functioncall *f = new functioncall;
         f->name = last.value;
         expect(t_lparen);
-        f->arg = expr();
-        expect(t_rparen);
+        while (!accept(t_rparen))
+        {
+            f->args.push_back(expr());
+            if (!accept(t_comma))
+            {
+                expect(t_rparen);
+                break;
+            }
+        }
         s->stat.funcstat = f;
     }
     else if (accept(t_id))
@@ -636,8 +650,8 @@ assignment::~assignment()
 
 functioncall::~functioncall()
 {
-
-    delete arg;
+    for  (unsigned int i = 0; i < args.size(); i++)
+        delete args[i];
 }
 
 procedurecall::~procedurecall()

@@ -36,11 +36,6 @@ class tagged_value
     tagged_value(procedure*);
 };
 
-class arglist_member
-{
-    tagged_value v;
-
-}
 
 class value;
 
@@ -167,7 +162,7 @@ class functioncall
 {
     public:
     std::string name;
-    expression* arg;
+    std::vector<expression*> args;
     ~functioncall();
 };
 

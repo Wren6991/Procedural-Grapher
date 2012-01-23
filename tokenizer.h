@@ -64,9 +64,10 @@ typedef enum {
     s_plot_imp
     } token_type_enum;
 
+class arglist_member;
 class tagged_value;
 
-typedef tagged_value (*dfuncd)(tagged_value);
+typedef tagged_value (*dfuncd)(arglist_member*);
 
 class token
 {
