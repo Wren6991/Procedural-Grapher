@@ -315,6 +315,7 @@ interpreter::interpreter(std::map<std::string, dfuncd> funcs_, g_data data_)
     vars["mousex"] = data.mousex;
     vars["mousey"] = data.mousey;
     vars["time"] = data.time / 1000.0;
+    vars["dt"] = data.dt / 1000.0;
     vars["pi"] = 3.14159265358979323846264338327950288419716939937510;
     vars["e"] = 2.71828183;
 }
@@ -444,7 +445,7 @@ void interpreter::evaluate(statement* stat)
                         temp = evaluate(stat->stat.assignstat->extra_lvalues[i].ai->array->arritem->array);     // array item -> value that contains the arrayitem -> arrayitem class (contains actual array and the index) -> actual array
                         if (temp.type != val_array)
                              throw(error("Error: attempt to index non-array (" + val_names[temp.type] + ")"));
-                        std::cout << "Assigning to array " << temp.val.arr << ", index " << evaluate(stat->stat.assignstat->extra_lvalues[i].ai->array->arritem->index).val.n << ", type " << val_names[vals[i].type] << "\n";
+                        //std::cout << "Assigning to array " << temp.val.arr << ", index " << evaluate(stat->stat.assignstat->extra_lvalues[i].ai->array->arritem->index).val.n << ", type " << val_names[vals[i].type] << "\n";
 
                         arrays[temp.val.arr][evaluate(stat->stat.assignstat->extra_lvalues[i].ai->array->arritem->index).val.n] = vals[i];
                     }
@@ -494,7 +495,7 @@ void interpreter::evaluate(statement* stat)
             evaluate(stat->stat.impplot);
             break;
         case t_def:
-            std::cout << "Defining procedure " << stat->stat.defstat->name << "\n";
+            //std::cout << "Defining procedure " << stat->stat.defstat->name << "\n";
             proc =  new procedure(stat->stat.defstat->args, stat->stat.defstat->entrypoint);
             procedures.push_back(proc);
             vars[stat->stat.defstat->name] = tagged_value(proc);
@@ -1186,7 +1187,6 @@ void interpreter::evaluate(implicitplot* relation)
                             line2(lastx + stepx * grid[lasti][j] / (grid[lasti][j] - grid[i][j]), y, x, lasty + stepy * grid[i][lastj] / (grid[i][lastj] - grid[i][j]));
                             break;
                         case 5:
-                            std::cout << lasty + stepy * grid[lasti][lastj] / (grid[lasti][lastj] - grid[lasti][j]) << "\n";
                             line2(lastx, lasty + stepy * grid[lasti][lastj] / (grid[lasti][lastj] - grid[lasti][j]), lastx + stepx * grid[lasti][lastj] / (grid[lasti][lastj] - grid[i][lastj]), lasty);
                             line2(lastx + stepx * grid[lasti][j] / (grid[lasti][j] - grid[i][j]), y, x, lasty + stepy * grid[i][lastj] / (grid[i][lastj] - grid[i][j]));
                             break;
@@ -1211,7 +1211,6 @@ void interpreter::evaluate(implicitplot* relation)
                             line2(lastx + stepx * grid[lasti][j] / (grid[lasti][j] - grid[i][j]), y, x, lasty + stepy * grid[i][lastj] / (grid[i][lastj] - grid[i][j]));
                             break;
                         case 10:
-                            std::cout << lasty + stepy * grid[lasti][lastj] / (grid[lasti][lastj] - grid[lasti][j]) << "\n";
                             line2(lastx, lasty + stepy * grid[lasti][lastj] / (grid[lasti][lastj] - grid[lasti][j]), lastx + stepx * grid[lasti][lastj] / (grid[lasti][lastj] - grid[i][lastj]), lasty);
                             line2(lastx + stepx * grid[lasti][j] / (grid[lasti][j] - grid[i][j]), y, x, lasty + stepy * grid[i][lastj] / (grid[i][lastj] - grid[i][j]));
                             break;
@@ -1294,7 +1293,6 @@ void interpreter::evaluate(implicitplot* relation)
                             pentagon2(x, lasty, lastx, lasty, lastx, y, lastx + stepx * grid[lasti][j] / (grid[lasti][j] - grid[i][j]), y, x, lasty + stepy * grid[i][lastj] / (grid[i][lastj] - grid[i][j]));
                             break;
                         case 10:
-                            std::cout << lasty + stepy * grid[lasti][lastj] / (grid[lasti][lastj] - grid[lasti][j]) << "\n";
                             triangle2(lastx, lasty + stepy * grid[lasti][lastj] / (grid[lasti][lastj] - grid[lasti][j]), lastx, y, lastx + stepx * grid[lasti][j] / (grid[lasti][j] - grid[i][j]), y);
                             triangle2(lastx + stepx * grid[lasti][lastj] / (grid[lasti][lastj] - grid[i][lastj]), lasty, x, lasty + stepy * grid[i][lastj] / (grid[i][lastj] - grid[i][j]), x, lasty);
                             break;
@@ -1374,7 +1372,7 @@ void interpreter::evaluate(implicitplot* relation)
 
         x = floor(data.left/stepx) * stepx;
         setcolor(data.currentcolor);
-        if (!(relation->haseq || relation->hasineq))
+        if (!relation->haseq)
         {
             for (int i = 2; i <= ncells + 1; i++)
             {

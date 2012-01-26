@@ -25,6 +25,7 @@ typedef struct g_data {
     double mousex;
     double mousey;
     double time;
+    double dt;
     bool is3d;
     int detail;
     std::vector <colorf> colors;

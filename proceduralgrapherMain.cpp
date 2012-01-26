@@ -30,6 +30,7 @@ wxTextCtrl *OutputBox;
 interpreter* interp_ptr;
 
 g_data parserdata;
+std::map <std::string, tagged_value> persistent_vars;
 
 std::string token_type_names[] = {
     "<eof>",
@@ -274,7 +275,22 @@ tagged_value prng_tv(arglist_member *arg)
 
     }
     return tagged_value(rand() / (float)RAND_MAX);
+}
 
+tagged_value getpersistent(arglist_member *arg)
+{
+    if (arg == NULL || arg->v.type != val_string)
+        throw(error("Error: expected string as argument to function \"getpersistent\""));
+    return persistent_vars[interp_ptr->strings[arg->v.val.str]];
+}
+
+tagged_value setpersistent(arglist_member *arg)
+{
+    if (arg == NULL || arg->v.type != val_string)
+        throw(error("Error: expected string as first argument to function \"setpersistent\""));
+    if (arg->next == NULL)
+        throw(error("Error: expected more arguments to function \"setpersistent\""));
+    persistent_vars[interp_ptr->strings[arg->v.val.str]] = arg->next->v;
 }
 //helper functions
 enum wxbuildinfoformat {
@@ -432,6 +448,8 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     funcs["char"] = char_tv;
     funcs["rand"] = rand_tv;
     funcs["prng"] = prng_tv;
+    funcs["getpersistent"] = getpersistent;
+    funcs["setpersistent"] = setpersistent;
     lastcanvaswidth = 300;
     lastcanvasheight = 300;
     tokens = tokenize(std::string("y = x^3 - x"), funcs);
@@ -830,6 +848,7 @@ void proceduralgrapherDialog::Onchk3DClick(wxCommandEvent& event)
 
 void proceduralgrapherDialog::OnTimer1Trigger(wxTimerEvent& event)
 {
+    parserdata.dt = StopWatch1.Time() - parserdata.time;
     parserdata.time = StopWatch1.Time();
     interpret();
 }

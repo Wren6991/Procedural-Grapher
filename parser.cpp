@@ -9,8 +9,11 @@
 
 
 ////////////<Must>/////////////
-//  fix array multiple assignments
+//
 ///////////<Should>////////////
+//  map -> vector for function storage (yields an integer index, functions can then be treated as values in code. Initialize variable names to function index? gives constant lookup time at runtime.)
+//  1 base for arrays intead of 0 base?
+//  persistent storage mechanism (getpersistent(), setpersistent()?)
 //  file dialogs
 //  settings
 //  local variables - either stack of maps, or store original values in a vector at call time and restore after return.
