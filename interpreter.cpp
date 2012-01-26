@@ -310,7 +310,10 @@ vert3f normallist[12];
 
 interpreter::interpreter(std::map<std::string, dfuncd> funcs_, g_data data_)
 {
-    funcs = funcs_;
+    for(std::map <std::string, dfuncd>::iterator iter = funcs_.begin(); iter != funcs_.end(); iter++)
+    {
+        funcs.push_back(iter->second);
+    }
     data = data_;
     vars["mousex"] = data.mousex;
     vars["mousey"] = data.mousey;
@@ -483,7 +486,8 @@ void interpreter::evaluate(statement* stat)
                 arglist_current = arglist_next;
             }
             arglist_current->next = NULL;
-            funcs[stat->stat.funcstat->name](arglist_top);
+            std::cout << stat->stat.funcstat->id << "\n";
+            funcs[stat->stat.funcstat->id](arglist_top);
             if (arglist_top != NULL)
                 delete arglist_top;
             break;
@@ -677,7 +681,7 @@ tagged_value interpreter::evaluate(value *v)
                 arglist_current->next = NULL;
             }
 
-            rv = funcs[v->funccall->name](arglist_top);
+            rv = funcs[v->funccall->id](arglist_top);
             if (arglist_top != NULL)
                 delete arglist_top;
             break;
@@ -1321,14 +1325,8 @@ void interpreter::evaluate(implicitplot* relation)
     else
     {
         bool equalsonly = relation->haseq && !relation->hasineq;
-        int ncells = data.detail / 6 + 1;
-        double*** grid = new double**[ncells + 3];
-        for (int i = 0; i < ncells + 3; i++)
-        {
-            grid[i] = new double*[ncells + 3];
-            for(int j = 0; j < ncells + 3; j++)
-                grid[i][j] = new double[ncells + 3];
-        }
+        int ncells = data.detail / 6;
+        double*** grid = data.grid3;
 
         double stepx = (data.right - data.left) / (ncells - 1);
         double stepy = (data.top - data.bottom) / (ncells - 1);
@@ -1361,7 +1359,7 @@ void interpreter::evaluate(implicitplot* relation)
             x += stepx;
         }
 
-        vert3f*** normals = new vert3f**[ncells + 1];
+        vert3f*** normals = data.normals;
         for (int i = 0; i <= ncells; i++)
         {
             normals[i] = new vert3f*[ncells + 1];
@@ -1374,19 +1372,20 @@ void interpreter::evaluate(implicitplot* relation)
         setcolor(data.currentcolor);
         if (!relation->haseq)
         {
-            for (int i = 2; i <= ncells + 1; i++)
+            glDisable(GL_LIGHTING);
+            glBegin(GL_POINTS);
+            for (int i = 1; i <= ncells; i++)
             {
                 y = floor(data.bottom/stepy) * stepy;
-                for(int j = 2; j <= ncells + 1; j++)
+                for(int j = 1; j <= ncells; j++)
                 {
                     z = floor(data.back/stepz) * stepz;
-                    for (int k = 2; k <= ncells + 1; k++)
+                    for (int k = 1; k <= ncells; k++)
                     {
                         if (grid[i][j][k] >= 0)
                         {
-                            glBegin(GL_POINTS);
+
                             glVertex3f(x, y, z);
-                            glEnd();
                         }
                        z += stepz;
                     }
@@ -1394,6 +1393,8 @@ void interpreter::evaluate(implicitplot* relation)
                 }
                 x += stepx;
             }
+            glEnd();
+            glEnable(GL_LIGHTING);
         }
         else
         {
@@ -1569,22 +1570,6 @@ void interpreter::evaluate(implicitplot* relation)
             }
         }
         glEnd();
-        for (int i = 0; i < ncells + 3; i++)
-        {
-            for(int j = 0; j < ncells + 3; j++)
-                delete grid[i][j];
-            delete grid[i];
-        }
-        delete grid;
-
-        for (int i = 0; i < ncells + 1; i++)
-        {
-            for(int j = 0; j < ncells + 1; j++)
-                delete normals[i][j];
-            delete normals[i];
-        }
-        delete normals;
-
     }
     getnextcolor();
 
@@ -1728,4 +1713,66 @@ arglist_member::~arglist_member()
 {
     if (next != NULL)
         delete next;
+}
+
+
+void g_data::setdetail(int detail_)
+{
+    int ncells = detail / 6;
+    for (int i = 0; i < ncells + 3; i++)
+    {
+        for(int j = 0; j < ncells + 3; j++)
+            delete grid3[i][j];
+        delete grid3[i];
+    }
+    delete grid3;
+
+    for (int i = 0; i < ncells + 1; i++)
+    {
+        for(int j = 0; j < ncells + 1; j++)
+            delete normals[i][j];
+        delete normals[i];
+    }
+    delete normals;
+
+    detail = detail_;
+    ncells = detail / 6;
+
+    grid3 = new double**[ncells + 3];
+    for (int i = 0; i < ncells + 3; i++)
+    {
+        grid3[i] = new double*[ncells + 3];
+        for(int j = 0; j < ncells + 3; j++)
+            grid3[i][j] = new double[ncells + 3];
+    }
+
+    normals = new vert3f**[ncells + 1];
+    for (int i = 0; i <= ncells; i++)
+    {
+        normals[i] = new vert3f*[ncells + 1];
+        for(int j = 0; j <= ncells; j++)
+            normals[i][j] = new vert3f[ncells + 1];
+    }
+}
+
+void g_data::setdetail(int detail_, bool overloader) //don't delete the data - used at first run, otherwise we try to delete data that doesn't yet exist.
+{
+    detail = detail_;
+    int ncells = detail / 6;
+
+    grid3 = new double**[ncells + 3];
+    for (int i = 0; i < ncells + 3; i++)
+    {
+        grid3[i] = new double*[ncells + 3];
+        for(int j = 0; j < ncells + 3; j++)
+            grid3[i][j] = new double[ncells + 3];
+    }
+
+    normals = new vert3f**[ncells + 1];
+    for (int i = 0; i <= ncells; i++)
+    {
+        normals[i] = new vert3f*[ncells + 1];
+        for(int j = 0; j <= ncells; j++)
+            normals[i][j] = new vert3f[ncells + 1];
+    }
 }

@@ -417,7 +417,7 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     parserdata.back = -1;
     parserdata.yaw = 0;
     parserdata.pitch = 0;
-    parserdata.detail = 100;
+    parserdata.setdetail(100, true);
     parserdata.time = 0;
     Timer1.Stop();
     StopWatch1.Pause();
@@ -484,7 +484,7 @@ void proceduralgrapherDialog::parse()
     if (validprogram)
         delete program;
     validprogram = false;
-    p = parser(tokens);
+    p = parser(tokens, funcs);
     try {
         program = p.blk();
         validprogram = true;
@@ -732,7 +732,7 @@ void proceduralgrapherDialog::OnGLCanvas1LeftDown(wxMouseEvent& event)
 void proceduralgrapherDialog::OnGLCanvas1LeftUp(wxMouseEvent& event)
 {
     leftdown = false;
-    parserdata.detail = 100;
+    parserdata.setdetail(100);
     if(!Timer1.IsRunning())
         interpret();
 }
@@ -756,7 +756,7 @@ void proceduralgrapherDialog::OnGLCanvas1MouseMove(wxMouseEvent& event)
             parserdata.right += dx * scalex;
             parserdata.top -= dy * scaley;
             parserdata.bottom -= dy * scaley;
-            parserdata.detail = 40;
+            parserdata.setdetail(40);
         }
         else
         {
@@ -782,7 +782,7 @@ void proceduralgrapherDialog::OnGLCanvas1MouseMove(wxMouseEvent& event)
         parserdata.right = (parserdata.right - centrex) * pow(1.01, dy) + centrex;
         parserdata.back  *= pow(1.01, dy);
         parserdata.front *= pow(1.01, dy);
-        parserdata.detail = 40;
+        parserdata.setdetail(40);
         if(!Timer1.IsRunning())
            interpret();
    }
@@ -813,7 +813,7 @@ void proceduralgrapherDialog::OnGLCanvas1MiddleDown(wxMouseEvent& event)
 void proceduralgrapherDialog::OnGLCanvas1MiddleUp(wxMouseEvent& event)
 {
     middledown = false;
-    parserdata.detail = 100;
+    parserdata.setdetail(100);
     if(!Timer1.IsRunning())
         interpret();
 }

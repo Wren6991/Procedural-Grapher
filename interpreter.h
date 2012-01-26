@@ -28,6 +28,10 @@ typedef struct g_data {
     double dt;
     bool is3d;
     int detail;
+    double*** grid3;
+    vert3f*** normals;
+    void setdetail(int);
+    void setdetail(int, bool);
     std::vector <colorf> colors;
     colorf currentcolor;
     unsigned int colorindex;
@@ -59,7 +63,7 @@ class interpreter
     tagged_value temp;
     tagged_value returnvalue;
     std::map<std::string, tagged_value> vars;
-    std::map<std::string, dfuncd> funcs;
+    std::vector <dfuncd> funcs;
     std::vector <std::string> strings;
     std::vector < std::map <int, tagged_value> > arrays;
     std::vector <procedure*> procedures;    //pointers to procedures are maintained here for cleanup in destructor - actually called from vars map.

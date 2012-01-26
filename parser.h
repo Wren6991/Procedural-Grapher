@@ -16,6 +16,7 @@ typedef enum value_type
     val_string,
     val_procedure,
     val_array,
+    val_func
 } value_type;
 
 class procedure;
@@ -161,7 +162,7 @@ class procedurecall
 class functioncall
 {
     public:
-    std::string name;
+    int id;
     std::vector<expression*> args;
     ~functioncall();
 };
@@ -262,7 +263,7 @@ class parser
     bool accepted_equals;
     bool accepted_ineq;     //for parsing implicit plots :)
 
-    std::map<std::string, dfuncd> funcs;
+    std::map<std::string, int> funcnames;
     void gettoken();
     parser();
     parser(std::vector <token>);

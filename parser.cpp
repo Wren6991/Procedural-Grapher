@@ -11,6 +11,7 @@
 ////////////<Must>/////////////
 //
 ///////////<Should>////////////
+//  fix normal calculations - calculate only where they're needed.
 //  map -> vector for function storage (yields an integer index, functions can then be treated as values in code. Initialize variable names to function index? gives constant lookup time at runtime.)
 //  1 base for arrays intead of 0 base?
 //  persistent storage mechanism (getpersistent(), setpersistent()?)
@@ -49,7 +50,12 @@ parser::parser(std::vector <token> tokens_, std::map <std::string, dfuncd> funcs
     if (parser::tokens.size() > 0)
         parser::t = tokens[0];
     parser::gettoken();
-    parser::funcs = funcs_;
+    int i = 0;
+    for (std::map <std::string, dfuncd>::iterator iter = funcs_.begin(); iter != funcs_.end(); iter++)
+    {
+        funcnames[iter->first] = i++;
+    }
+
 }
 
 
@@ -184,7 +190,7 @@ value* parser::val()
     {
         v->type = t_func;
         functioncall *f = new functioncall;
-        f->name = last.value;
+        f->id = funcnames[last.value];
         expect(t_lparen);
         while (!accept(t_rparen))
         {
@@ -419,7 +425,7 @@ statement* parser::stat()
     {
         s->type = t_func;
         functioncall *f = new functioncall;
-        f->name = last.value;
+        f->id = funcnames[last.value];
         expect(t_lparen);
         while (!accept(t_rparen))
         {
