@@ -12,14 +12,11 @@
 //
 ///////////<Should>////////////
 //  fix normal calculations - calculate only where they're needed.
-//  map -> vector for function storage (yields an integer index, functions can then be treated as values in code. Initialize variable names to function index? gives constant lookup time at runtime.)
 //  1 base for arrays intead of 0 base?
-//  persistent storage mechanism (getpersistent(), setpersistent()?)
 //  file dialogs
 //  settings
 //  local variables - either stack of maps, or store original values in a vector at call time and restore after return.
 ///////////<Could>/////////////
-//  persistent variables
 //  make predefined functions first-class values
 //  allow predefined functions to take multiple arguments
 //  mouse tracing and intersections
@@ -795,4 +792,17 @@ assg_lvalue::assg_lvalue(std::string str_)
 {
     isarray = false;
     str = str_;
+}
+
+bool tagged_value::operator<(const tagged_value& other) const
+{
+    if (type < other.type)
+        return true;
+    else if (type == other.type)
+        if (type == val_number)
+            return val.n < other.val.n;
+        else
+            return val.str < other.val.str;
+    else
+        return false;
 }

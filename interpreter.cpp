@@ -437,7 +437,7 @@ void interpreter::evaluate(statement* stat)
                     temp = evaluate(stat->stat.assignstat->lvalue.ai->array->arritem->array);
                     if (temp.type != val_array)
                         throw(error("Error: attempt to index non-array (" + val_names[temp.type] + ")"));
-                    arrays[temp.val.arr][evaluate(stat->stat.assignstat->lvalue.ai->array->arritem->index).val.n] = singleval;
+                    arrays[temp.val.arr][evaluate(stat->stat.assignstat->lvalue.ai->array->arritem->index)] = singleval;
                 }
                 for (int i = 0; i < n_ass; i++)
                 {
@@ -450,7 +450,7 @@ void interpreter::evaluate(statement* stat)
                              throw(error("Error: attempt to index non-array (" + val_names[temp.type] + ")"));
                         //std::cout << "Assigning to array " << temp.val.arr << ", index " << evaluate(stat->stat.assignstat->extra_lvalues[i].ai->array->arritem->index).val.n << ", type " << val_names[vals[i].type] << "\n";
 
-                        arrays[temp.val.arr][evaluate(stat->stat.assignstat->extra_lvalues[i].ai->array->arritem->index).val.n] = vals[i];
+                        arrays[temp.val.arr][evaluate(stat->stat.assignstat->extra_lvalues[i].ai->array->arritem->index)] = vals[i];
                     }
                 }
                 delete vals;
@@ -463,7 +463,7 @@ void interpreter::evaluate(statement* stat)
                     temp = evaluate(stat->stat.assignstat->lvalue.ai->array->arritem->array);
                     if (temp.type != val_array)
                          throw(error("Error: attempt to index non-array (" + val_names[temp.type] + ")"));
-                    arrays[temp.val.arr][evaluate(stat->stat.assignstat->lvalue.ai->array->arritem->index).val.n] = evaluate(stat->stat.assignstat->rvalue);
+                    arrays[temp.val.arr][evaluate(stat->stat.assignstat->lvalue.ai->array->arritem->index)] = evaluate(stat->stat.assignstat->rvalue);
                 }
             break;
         case t_func:
@@ -736,12 +736,12 @@ tagged_value interpreter::evaluate(value *v)
             else if (rv.type != val_array)
                 throw(error("Error: attempt to index non-array"));
             else
-                rv = arrays[rv.val.arr][floor(evaluate(v->arritem->index).val.n)];
+                rv = arrays[rv.val.arr][evaluate(v->arritem->index)];
             break;
         case t_lbrace:
             rv.type = val_array;
             rv.val.arr = arrays.size();
-            arrays.push_back(std::map<int, tagged_value>());
+            arrays.push_back(std::map<tagged_value, tagged_value>());
             //std::cout << "Creating array " << rv.val.arr << ":\n";
             for (unsigned int i = 0; i < v->arrinit->explist.size(); i++)
             {
@@ -972,9 +972,9 @@ void interpreter::evaluate(explicitplot* relation)
                 for(int j = 0; j <= ncells; j++)
                 {
                     normals[i][j] = vert3f(
-                                           -(stepy * stepz * 4),
-                                           (grid[i+2][j+1] - grid[i][j+1]) * stepz * 2,
-                                           (grid[i+1][j+2] - grid[i+1][j]) * stepy * 2
+                                           (stepy * stepz * 4),
+                                           -(grid[i+2][j+1] - grid[i][j+1]) * stepz * 2,
+                                           -(grid[i+1][j+2] - grid[i+1][j]) * stepy * 2
                                            );                                           //cross product of the two tangent vectors
                 }
             double lasty = data.bottom;
@@ -1047,9 +1047,9 @@ void interpreter::evaluate(explicitplot* relation)
                 for(int j = 0; j <= ncells; j++)
                 {
                     normals[i][j] = vert3f(
-                                           (grid[i+2][j+1] - grid[i][j+1]) * stepy * 2,
-                                           (grid[i+1][j+2] - grid[i+1][j]) * stepx * 2,
-                                            -(stepx * stepy * 4)
+                                           -(grid[i+2][j+1] - grid[i][j+1]) * stepy * 2,
+                                           -(grid[i+1][j+2] - grid[i+1][j]) * stepx * 2,
+                                            (stepx * stepy * 4)
                                           );                                           //cross product of the two tangent vectors
                 }
             double lastx = data.left;
@@ -1776,3 +1776,4 @@ void g_data::setdetail(int detail_, bool overloader) //don't delete the data - u
             normals[i][j] = new vert3f[ncells + 1];
     }
 }
+

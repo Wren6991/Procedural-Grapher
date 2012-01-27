@@ -35,6 +35,7 @@ class tagged_value
     tagged_value();
     tagged_value(double);
     tagged_value(procedure*);
+    bool operator<(const tagged_value&) const;
 };
 
 

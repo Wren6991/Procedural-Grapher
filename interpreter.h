@@ -65,7 +65,7 @@ class interpreter
     std::map<std::string, tagged_value> vars;
     std::vector <dfuncd> funcs;
     std::vector <std::string> strings;
-    std::vector < std::map <int, tagged_value> > arrays;
+    std::vector < std::map <tagged_value, tagged_value> > arrays;
     std::vector <procedure*> procedures;    //pointers to procedures are maintained here for cleanup in destructor - actually called from vars map.
     g_data data;
     bool receivedequals;
@@ -88,3 +88,5 @@ class interpreter
     interpreter (std::map<std::string, dfuncd>, g_data);
     ~interpreter();
 };
+
+bool lessthan_tv(tagged_value, tagged_value);

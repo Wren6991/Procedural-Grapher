@@ -782,7 +782,8 @@ void proceduralgrapherDialog::OnGLCanvas1MouseMove(wxMouseEvent& event)
         parserdata.right = (parserdata.right - centrex) * pow(1.01, dy) + centrex;
         parserdata.back  *= pow(1.01, dy);
         parserdata.front *= pow(1.01, dy);
-        parserdata.setdetail(40);
+        if (!parserdata.is3d)
+            parserdata.setdetail(40);
         if(!Timer1.IsRunning())
            interpret();
    }
