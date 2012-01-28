@@ -87,7 +87,6 @@
 				<gui name="wxWidgets" src="proceduralgrapherApp.cpp" main="proceduralgrapherDialog" init_handlers="necessary" language="CPP" />
 				<resources>
 					<wxDialog wxs="wxsmith/proceduralgrapherdialog.wxs" src="proceduralgrapherMain.cpp" hdr="proceduralgrapherMain.h" name="proceduralgrapherDialog" language="CPP" />
-					<wxFrame wxs="wxsmith/proceduralgrapherFrame.wxs" src="proceduralgrapherFrame.cpp" hdr="proceduralgrapherFrame.h" name="proceduralgrapherFrame" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

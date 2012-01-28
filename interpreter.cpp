@@ -1121,6 +1121,8 @@ void interpreter::evaluate(implicitplot* relation)
             for(int j = 0; j <= ncells; j++)
             {
                 vars["y"].val.n = y;
+                vars["theta"] = atan2(y, x);
+                vars["r"] = sqrt(x*x + y*y);
                 grid[i][j] = evaluate(relation->expr).val.n;
                 if (equalsonly)
                     grid[i][j] = (grid[i][j] == 0.00001 ? -100000 : grid[i][j]) + 100000;   //undo logical value munging.
