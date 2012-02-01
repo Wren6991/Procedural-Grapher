@@ -14,6 +14,7 @@
 //  fix normal calculations - calculate only where they're needed.
 //  procedures as values
 //  anonymous functions
+//  make interpretation iterative - self-maintained stack.
 //  t.k syntax (vs. t["k"])
 //  1 base for arrays intead of 0 base?
 //  file dialogs
@@ -158,28 +159,8 @@ value* parser::val()
     v->negative = accept(t_minus);
     if (accept(t_id))
     {
-        std::string id = last.value;
-        if (accept(t_lparen))
-        {
-            v->type = n_procedure;
-            procedurecall *p = new procedurecall;
-            p->name = id;
-            while (!accept(t_rparen))
-            {
-                p->args.push_back(expr());
-                if(!accept(t_comma))
-                {
-                    expect(t_rparen);
-                    break;
-                }
-            }
-            v->proccall = p;
-        }
-        else
-        {
-            v->type = t_id;
-            v->var = id;
-        }
+        v->type = t_id;
+        v->var = last.value;
     }
     else if (accept(t_number))
     {
@@ -252,6 +233,26 @@ value* parser::val()
         v = a;      //stuff v into a, make a the new v - previous array-index pair becomes new array. at the end,  we just return v; this is the top-level array-index pair. At runtime, top-level array is evaluated recursively.
         expect(t_rsquareb);
     }
+    if (accept(t_lparen))
+    {
+        procedurecall *p = new procedurecall;
+        p->name = v;
+        while (!accept(t_rparen))
+        {
+            p->args.push_back(expr());
+            if(!accept(t_comma))
+            {
+                expect(t_rparen);
+                break;
+            }
+        }
+        v = new value();
+        v->type = n_procedure;
+        v->proccall = p;
+        v->negative = p->name->negative;
+        p->name->negative = false;
+        p->name->expd = false;
+    }
 
     if(accept(t_exp))
     {
@@ -295,7 +296,7 @@ statement* parser::stat()
             rs->stat.returnstat = r;
             b->statements.push_back(rs);
             d->entrypoint = b;
-            s->stat.defstat = d;
+            s->stat.defstat = d;    // (above is equivalent to "def f(x) return x^2 end", but feels a bit more mathsy.)
         }
         else
         {
@@ -453,7 +454,9 @@ statement* parser::stat()
         {
             s->type = n_procedure;
             procedurecall *p = new procedurecall;
-            p->name = id;
+            p->name = new value();
+            p->name->type = t_id;
+            p->name->var = id;
             while (!accept(t_rparen))
             {
                 p->args.push_back(expr());
@@ -667,6 +670,7 @@ procedurecall::~procedurecall()
 {
     for (unsigned int i = 0; i < args.size(); i++)
         delete args[i];
+    delete name;
 }
 
 defstatement::~defstatement()

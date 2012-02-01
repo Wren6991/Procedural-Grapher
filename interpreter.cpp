@@ -512,10 +512,10 @@ void interpreter::evaluate(statement* stat)
             stacklevel++;
             if (stacklevel > MAX_STACK_LEVEL)
                 throw(error("Error: Maximum stack size exceeded"));
-
-            if (vars[stat->stat.procstat->name].type != val_procedure) //not defined
+            temp = evaluate(stat->stat.procstat->name);
+            if (temp.type != val_procedure) //not defined
                 throw(n_procedure);
-            proc = vars[stat->stat.procstat->name].val.proc;
+            proc = temp.val.proc;
 
             if(stat->stat.procstat->args.size() == proc->args.size())
             {
@@ -537,9 +537,9 @@ void interpreter::evaluate(statement* stat)
             else
             {
                 if (stat->stat.procstat->args.size() > proc->args.size())
-                    throw(error(std::string("Error: too many arguments to procedure ") + stat->stat.procstat->name));
+                    throw(error("Error: too many arguments to procedure"));
                 else
-                    throw(error(std::string("Error: too few arguments to procedure ") + stat->stat.procstat->name));
+                    throw(error("Error: too few arguments to procedure"));
             }
             break;
         case t_return:
@@ -704,9 +704,10 @@ tagged_value interpreter::evaluate(value *v)
             if (stacklevel > MAX_STACK_LEVEL)
                 throw(error("Error: Maximum stack size exceeded"));
             std::map <std::string, tagged_value> temps;
-            if (vars[v->proccall->name].type != val_procedure) //not defined
+            rv = evaluate(v->proccall->name);
+            if (rv.type != val_procedure) //not defined
                 throw(n_procedure);
-            proc = vars[v->proccall->name].val.proc;
+            proc = rv.val.proc;
 
             if(v->proccall->args.size() == proc->args.size())
             {
@@ -734,9 +735,9 @@ tagged_value interpreter::evaluate(value *v)
             else
             {
                 if (v->proccall->args.size() > proc->args.size())
-                    throw(error(std::string("Error: too many arguments to procedure ") + v->proccall->name));
+                    throw(error("Error: too many arguments to procedure"));
                 else
-                    throw(error(std::string("Error: too few arguments to procedure ") + v->proccall->name));
+                    throw(error("Error: too few arguments to procedure"));
             }
             break;
         }

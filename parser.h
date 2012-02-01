@@ -155,7 +155,7 @@ class defstatement
 class procedurecall
 {
     public:
-    std::string name;
+    value* name;
     std::vector <expression*> args;
     ~procedurecall();
 };
