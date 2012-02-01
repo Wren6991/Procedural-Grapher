@@ -1,6 +1,9 @@
 #include "interpreter.h"
 #include <wx/glcanvas.h>
 #include <algorithm>
+#include <sstream>
+
+const int MAX_STACK_LEVEL = 800;
 
 std::string val_names[] = {
     "nil",
@@ -319,8 +322,9 @@ interpreter::interpreter(std::map<std::string, dfuncd> funcs_, g_data data_)
     vars["mousey"] = data.mousey;
     vars["time"] = data.time / 1000.0;
     vars["dt"] = data.dt / 1000.0;
-    vars["pi"] = 3.14159265358979323846264338327950288419716939937510;
+    vars["pi"] = 3.14159265358979323846264338327950288419716939937510;  // TODO: make this more precise
     vars["e"] = 2.71828183;
+    stacklevel = 0;
 }
 
 interpreter::~interpreter()
@@ -505,6 +509,10 @@ void interpreter::evaluate(statement* stat)
             vars[stat->stat.defstat->name] = tagged_value(proc);
             break;
         case n_procedure:
+            stacklevel++;
+            if (stacklevel > MAX_STACK_LEVEL)
+                throw(error("Error: Maximum stack size exceeded"));
+
             if (vars[stat->stat.procstat->name].type != val_procedure) //not defined
                 throw(n_procedure);
             proc = vars[stat->stat.procstat->name].val.proc;
@@ -524,6 +532,7 @@ void interpreter::evaluate(statement* stat)
                     if (t != t_return)
                         throw(t);
                 }
+                stacklevel--;
             }
             else
             {
@@ -691,6 +700,9 @@ tagged_value interpreter::evaluate(value *v)
             break;
         case n_procedure:
         {
+            stacklevel++;
+            if (stacklevel > MAX_STACK_LEVEL)
+                throw(error("Error: Maximum stack size exceeded"));
             std::map <std::string, tagged_value> temps;
             if (vars[v->proccall->name].type != val_procedure) //not defined
                 throw(n_procedure);
@@ -717,6 +729,7 @@ tagged_value interpreter::evaluate(value *v)
                 {
                     vars[iter->first] = iter->second;
                 }
+                stacklevel--;
             }
             else
             {

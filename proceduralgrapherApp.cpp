@@ -14,6 +14,7 @@
 #include <wx/image.h>
 //*)
 #include <iostream>
+#include <wx/msgdlg.h>
 
 IMPLEMENT_APP(proceduralgrapherApp);
 
@@ -24,15 +25,25 @@ bool proceduralgrapherApp::OnInit()
     wxInitAllImageHandlers();
     if ( wxsOK )
     {
-    	proceduralgrapherDialog Dlg(0);
-    	SetTopWindow(&Dlg);
-    	Dlg.SetIcon(wxIcon("aaaa", wxBITMAP_TYPE_ICO_RESOURCE));
-        Dlg.ShowModal();
-    	Dlg.init2d();
-    	Dlg.endgl();
-    	wxsOK = false;
+    	proceduralgrapherDialog* Dlg = new proceduralgrapherDialog(0);
+    	SetTopWindow(Dlg);
+    	Dlg->SetIcon(wxIcon("aaaa", wxBITMAP_TYPE_ICO_RESOURCE));
+        Dlg->Show();
+    	Dlg->init2d();
+    	Dlg->endgl();
     }
 
     return wxsOK;
 
 }
+
+/*int ::(wxEvent& event)
+{
+    if (event.GetEventType() == wxEVT_KEY_DOWN)
+    {
+        wxMessageBox("the quick bromn fox jumps over the lazy dog");
+    }
+}*/
+
+
+

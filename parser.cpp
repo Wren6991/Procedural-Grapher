@@ -12,6 +12,9 @@
 //
 ///////////<Should>////////////
 //  fix normal calculations - calculate only where they're needed.
+//  procedures as values
+//  anonymous functions
+//  t.k syntax (vs. t["k"])
 //  1 base for arrays intead of 0 base?
 //  file dialogs
 //  settings

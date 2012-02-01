@@ -16,17 +16,18 @@
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
 #include <wx/glcanvas.h>
+#include <wx/toolbar.h>
 #include <wx/stopwatch.h>
 #include <wx/panel.h>
 #include <wx/button.h>
-#include <wx/dialog.h>
+#include <wx/frame.h>
 #include <wx/timer.h>
 //*)
 #include "parser.h"
 #include <vector>
 #include <map>
 
-class proceduralgrapherDialog: public wxDialog
+class proceduralgrapherDialog: public wxFrame
 {
     public:
 
@@ -60,6 +61,7 @@ class proceduralgrapherDialog: public wxDialog
         void OnPanel1Paint(wxPaintEvent& event);
         void OnGLCanvas1RightDown(wxMouseEvent& event);
         void OnchkGridClick(wxCommandEvent& event);
+        void OnPollTimerTrigger(wxTimerEvent& event);
         //*)
         void parse();
         void interpret();
@@ -78,20 +80,30 @@ class proceduralgrapherDialog: public wxDialog
         static const long ID_NOTEBOOK1;
         static const long ID_GLCANVAS1;
         static const long ID_TIMER1;
+        static const long tbrNew;
+        static const long tbrOpen;
+        static const long tbrSave;
+        static const long tbrTime;
+        static const long ID_TOOLBAR1;
         //*)
 
         //(*Declarations(proceduralgrapherDialog)
+        wxToolBarToolBase* ToolBarItem4;
+        wxToolBar* ToolBar1;
         wxButton* btnStartStopTime;
         wxTextCtrl* txtOutput;
         wxNotebook* Notebook1;
+        wxToolBarToolBase* ToolBarItem3;
         wxGLCanvas* GLCanvas1;
         wxButton* btnResetTime;
         wxPanel* Panel1;
         wxTextCtrl* txtExpr;
+        wxToolBarToolBase* ToolBarItem1;
         wxStopWatch StopWatch1;
         wxBoxSizer* BoxSizer1;
         wxPanel* Panel2;
         wxCheckBox* chkGrid;
+        wxToolBarToolBase* ToolBarItem2;
         wxTimer Timer1;
         wxCheckBox* chk3D;
         //*)

@@ -70,6 +70,7 @@ class interpreter
     g_data data;
     bool receivedequals;
     bool receivedinequal;
+    int stacklevel;
 
     void getnextcolor();
     void evaluate(block*);

@@ -11,9 +11,11 @@
 #include <wx/msgdlg.h>
 
 //(*InternalHeaders(proceduralgrapherDialog)
+#include <wx/bitmap.h>
 #include <wx/settings.h>
 #include <wx/font.h>
 #include <wx/intl.h>
+#include <wx/image.h>
 #include <wx/string.h>
 //*)
 
@@ -330,9 +332,14 @@ const long proceduralgrapherDialog::ID_PANEL2 = wxNewId();
 const long proceduralgrapherDialog::ID_NOTEBOOK1 = wxNewId();
 const long proceduralgrapherDialog::ID_GLCANVAS1 = wxNewId();
 const long proceduralgrapherDialog::ID_TIMER1 = wxNewId();
+const long proceduralgrapherDialog::tbrNew = wxNewId();
+const long proceduralgrapherDialog::tbrOpen = wxNewId();
+const long proceduralgrapherDialog::tbrSave = wxNewId();
+const long proceduralgrapherDialog::tbrTime = wxNewId();
+const long proceduralgrapherDialog::ID_TOOLBAR1 = wxNewId();
 //*)
 
-BEGIN_EVENT_TABLE(proceduralgrapherDialog,wxDialog)
+BEGIN_EVENT_TABLE(proceduralgrapherDialog,wxFrame)
     //(*EventTable(proceduralgrapherDialog)
     //*)
 END_EVENT_TABLE()
@@ -343,15 +350,16 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     //(*Initialize(proceduralgrapherDialog)
     wxBoxSizer* BoxSizer4;
     wxBoxSizer* BoxSizer2;
-
-    Create(parent, id, _("Procedural Grapher"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("id"));
+    
+    Create(parent, wxID_ANY, _("Procedural Grapher"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetClientSize(wxSize(-1,-1));
+    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
     BoxSizer2 = new wxBoxSizer(wxVERTICAL);
     txtExpr = new wxTextCtrl(this, ID_TXTEXPR, _("y = x^3 - x"), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER|wxTE_PROCESS_TAB|wxTE_MULTILINE|wxTE_CHARWRAP|wxSUNKEN_BORDER|wxVSCROLL, wxDefaultValidator, _T("ID_TXTEXPR"));
     wxFont txtExprFont(10,wxSWISS,wxFONTSTYLE_NORMAL,wxNORMAL,false,_T("Consolas"),wxFONTENCODING_DEFAULT);
     txtExpr->SetFont(txtExprFont);
-    BoxSizer2->Add(txtExpr, 2, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizer2->Add(txtExpr, 2, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 4);
     Notebook1 = new wxNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
     txtOutput = new wxTextCtrl(Notebook1, ID_TXTOUTPUT, _("Text"), wxPoint(-89,-653), wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxSUNKEN_BORDER|wxVSCROLL, wxDefaultValidator, _T("ID_TXTOUTPUT"));
     txtOutput->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT));
@@ -365,8 +373,10 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     Panel2 = new wxPanel(Notebook1, ID_PANEL2, wxPoint(162,14), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
     BoxSizer4 = new wxBoxSizer(wxHORIZONTAL);
     btnStartStopTime = new wxButton(Panel2, ID_BUTTON1, _("Start Time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+    btnStartStopTime->SetToolTip(_("Start or Stop the timer. The \"time\" variable will increase while the timer is running. [Ctr + T]"));
     BoxSizer4->Add(btnStartStopTime, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     btnResetTime = new wxButton(Panel2, ID_BUTTON2, _("Reset Time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+    btnResetTime->SetToolTip(_("Set time to 0 [Ctrl + R]"));
     BoxSizer4->Add(btnResetTime, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel2->SetSizer(BoxSizer4);
     BoxSizer4->Fit(Panel2);
@@ -374,7 +384,7 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     Notebook1->AddPage(txtOutput, _("Output"), false);
     Notebook1->AddPage(Panel1, _("View"), false);
     Notebook1->AddPage(Panel2, _("Time"), false);
-    BoxSizer2->Add(Notebook1, 1, wxTOP|wxBOTTOM|wxLEFT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizer2->Add(Notebook1, 1, wxTOP|wxBOTTOM|wxLEFT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 4);
     BoxSizer1->Add(BoxSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     int GLCanvasAttributes_1[] = {
     	WX_GL_RGBA,
@@ -387,8 +397,15 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     SetSizer(BoxSizer1);
     Timer1.SetOwner(this, ID_TIMER1);
     Timer1.Start(25, false);
+    ToolBar1 = new wxToolBar(this, ID_TOOLBAR1, wxDefaultPosition, wxDefaultSize, wxRAISED_BORDER|wxSTATIC_BORDER, _T("ID_TOOLBAR1"));
+    ToolBarItem1 = ToolBar1->AddTool(tbrNew, _("New"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\page_add.ico"))), wxNullBitmap, wxITEM_NORMAL, _("New File"), wxEmptyString);
+    ToolBarItem2 = ToolBar1->AddTool(tbrOpen, _("Open"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\folder_page.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Open File"), wxEmptyString);
+    ToolBarItem3 = ToolBar1->AddTool(tbrSave, _("Save"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\disk.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Save File (Right Click: Save As)"), wxEmptyString);
+    ToolBarItem4 = ToolBar1->AddTool(tbrTime, _("Time"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\hourglass.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Start/Stop Time"), wxEmptyString);
+    ToolBar1->Realize();
+    SetToolBar(ToolBar1);
     BoxSizer1->SetSizeHints(this);
-
+    
     Connect(ID_TXTEXPR,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&proceduralgrapherDialog::Tokenize);
     Connect(ID_TXTOUTPUT,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&proceduralgrapherDialog::OntxtOutputText);
     Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::Onchk3DClick);
@@ -406,6 +423,13 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     GLCanvas1->Connect(wxEVT_SIZE,(wxObjectEventFunction)&proceduralgrapherDialog::OnGLCanvas1Resize,0,this);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&proceduralgrapherDialog::OnTimer1Trigger);
     //*)
+    wxAcceleratorEntry entries[4];
+    entries[0].Set(wxACCEL_CTRL, (int) 'T', ID_BUTTON1);
+    entries[1].Set(wxACCEL_CTRL, (int) 'R', ID_BUTTON2);
+    entries[2].Set(wxACCEL_CTRL, (int) 'D', ID_CHECKBOX1);
+    entries[3].Set(wxACCEL_CTRL, (int) 'G', ID_CHECKBOX2);
+    wxAcceleratorTable accel(4, entries);
+    this->SetAcceleratorTable(accel);
     GLContext1 = new wxGLContext(GLCanvas1);
     OutputBox = txtOutput;
     donedrawing = true;

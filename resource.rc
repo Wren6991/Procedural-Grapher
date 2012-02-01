@@ -1,3 +1,6 @@
 aaaa ICON "icon.ico"
+asave ICON "disk.ico"
+anew ICON "page_add.ico"
+aopen ICON "folder_page.ico"
 
 #include "wx/msw/wx.rc"
