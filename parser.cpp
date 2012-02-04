@@ -17,7 +17,6 @@
 //  make interpretation iterative - self-maintained stack.
 //  t.k syntax (vs. t["k"])
 //  1 base for arrays intead of 0 base?
-//  file dialogs
 //  settings
 //  local variables - either stack of maps, or store original values in a vector at call time and restore after return.
 ///////////<Could>/////////////
@@ -220,38 +219,60 @@ value* parser::val()
     }
     else
         throw(n_value);
-    while (accept(t_lsquareb))
+    while (t.type == t_lsquareb || t.type == t_dot || t.type == t_lparen)
     {
-        value* a = new value;
-        a->type = t_lsquareb;
-        a->negative = false;
-        a->arritem = new arrayitem;
-        a->arritem->array = v;
-        a->arritem->index = expr();
-
-        v->expd = false;    //because we're about to hide v, so these won't be set below.
-        v = a;      //stuff v into a, make a the new v - previous array-index pair becomes new array. at the end,  we just return v; this is the top-level array-index pair. At runtime, top-level array is evaluated recursively.
-        expect(t_rsquareb);
-    }
-    if (accept(t_lparen))
-    {
-        procedurecall *p = new procedurecall;
-        p->name = v;
-        while (!accept(t_rparen))
+        if (accept(t_lsquareb))
         {
-            p->args.push_back(expr());
-            if(!accept(t_comma))
-            {
-                expect(t_rparen);
-                break;
-            }
+            value* a = new value;
+            a->type = t_lsquareb;
+            a->negative = false;
+            a->arritem = new arrayitem;
+            a->arritem->array = v;
+            a->arritem->index = expr();
+
+            v->expd = false;    //because we're about to hide v, so these won't be set below.
+            v = a;      //stuff v into a, make a the new v - previous array-index pair becomes new array. at the end,  we just return v; this is the top-level array-index pair. At runtime, top-level array is evaluated recursively.
+            expect(t_rsquareb);
         }
-        v = new value();
-        v->type = n_procedure;
-        v->proccall = p;
-        v->negative = p->name->negative;
-        p->name->negative = false;
-        p->name->expd = false;
+        else if (accept(t_dot))
+        {
+            value* a = new value;
+            a->type = t_lsquareb;
+            a->negative = false;
+            a->arritem = new arrayitem;
+            a->arritem->array = v;
+            expect(t_id);
+            a->arritem->index = new expression();
+            a->arritem->index->comparisons.push_back(new comparison());
+            a->arritem->index->comparisons[0]->a = new sum();
+            a->arritem->index->comparisons[0]->a->terms.push_back(new term());
+            a->arritem->index->comparisons[0]->a->terms[0]->values.push_back(new value);
+            a->arritem->index->comparisons[0]->a->terms[0]->values[0]->type = t_string;
+            a->arritem->index->comparisons[0]->a->terms[0]->values[0]->var = last.value;    //build a whole tree - thank god this only happens at parse-time.
+
+            v->expd = false;    //because we're about to hide v, so these won't be set below.
+            v = a;      //stuff v into a, make a the new v - previous array-index pair becomes new array. at the end,  we just return v; this is the top-level array-index pair. At runtime, top-level array is evaluated recursively.
+        }
+        else if (accept(t_lparen))
+        {
+            procedurecall *p = new procedurecall;
+            p->name = v;
+            while (!accept(t_rparen))
+            {
+                p->args.push_back(expr());
+                if(!accept(t_comma))
+                {
+                    expect(t_rparen);
+                    break;
+                }
+            }
+            v = new value();
+            v->type = n_procedure;
+            v->proccall = p;
+            v->negative = p->name->negative;
+            p->name->negative = false;
+            p->name->expd = false;
+        }
     }
 
     if(accept(t_exp))

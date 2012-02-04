@@ -375,6 +375,7 @@ void interpreter::evaluate(block* blk)
 
 void interpreter::evaluate(statement* stat)
 {
+    tagged_value temp;
    switch(stat->type)
     {
         case t_while:
@@ -467,7 +468,8 @@ void interpreter::evaluate(statement* stat)
                     temp = evaluate(stat->stat.assignstat->lvalue.ai->array->arritem->array);
                     if (temp.type != val_array)
                          throw(error("Error: attempt to index non-array (" + val_names[temp.type] + ")"));
-                    arrays[temp.val.arr][evaluate(stat->stat.assignstat->lvalue.ai->array->arritem->index)] = evaluate(stat->stat.assignstat->rvalue);
+                        //std::cout << "Assigning to array " << temp.val.arr << ", index " << evaluate(stat->stat.assignstat->lvalue.ai->array->arritem->index).val.n << ", type " << val_names[evaluate(stat->stat.assignstat->rvalue).type] << "\n";
+                        arrays[temp.val.arr][evaluate(stat->stat.assignstat->lvalue.ai->array->arritem->index)] = evaluate(stat->stat.assignstat->rvalue);
                 }
             break;
         case t_func:
@@ -490,7 +492,7 @@ void interpreter::evaluate(statement* stat)
                 arglist_current = arglist_next;
             }
             arglist_current->next = NULL;
-            std::cout << stat->stat.funcstat->id << "\n";
+            //std::cout << stat->stat.funcstat->id << "\n";
             funcs[stat->stat.funcstat->id](arglist_top);
             if (arglist_top != NULL)
                 delete arglist_top;
@@ -750,7 +752,10 @@ tagged_value interpreter::evaluate(value *v)
             else if (rv.type != val_array)
                 throw(error("Error: attempt to index non-array"));
             else
+            {
+                //std::cout << "indexing array " << rv.val.arr << ", index " << evaluate(v->arritem->index).val.n << "\n";
                 rv = arrays[rv.val.arr][evaluate(v->arritem->index)];
+            }
             break;
         case t_lbrace:
             rv.type = val_array;
@@ -799,6 +804,8 @@ tagged_value interpreter::evaluate(value *v)
              throw(error("Error: attempted to perform arithmetic on non-number."));
         rv.val.n = -rv.val.n;
     }
+    //std::cout << "Returning " << val_names[rv.type] << ": " << (rv.type == val_number ? rv.val.n : rv. val.arr) << "";
+    //std::cout << "\n";
     return rv;
 }
 

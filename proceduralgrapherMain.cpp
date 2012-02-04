@@ -80,6 +80,7 @@ std::string token_type_names[] = {
     "right brace",
     "left squarebr.",
     "right squarebr.",
+    "."
     "no. tokens",
     "e_value",
     "e_nostatement",
@@ -350,8 +351,8 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     //(*Initialize(proceduralgrapherDialog)
     wxBoxSizer* BoxSizer4;
     wxBoxSizer* BoxSizer2;
-    
-    Create(parent, wxID_ANY, _("Procedural Grapher"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+
+    Create(parent, wxID_ANY, _("Procedural Grapher - Untitled"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetClientSize(wxSize(-1,-1));
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
@@ -401,11 +402,13 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     ToolBarItem1 = ToolBar1->AddTool(tbrNew, _("New"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\page_add.ico"))), wxNullBitmap, wxITEM_NORMAL, _("New File"), wxEmptyString);
     ToolBarItem2 = ToolBar1->AddTool(tbrOpen, _("Open"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\folder_page.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Open File"), wxEmptyString);
     ToolBarItem3 = ToolBar1->AddTool(tbrSave, _("Save"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\disk.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Save File (Right Click: Save As)"), wxEmptyString);
-    ToolBarItem4 = ToolBar1->AddTool(tbrTime, _("Time"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\hourglass.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Start/Stop Time"), wxEmptyString);
+    ToolBarItem4 = ToolBar1->AddTool(tbrTime, _("Time"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\hourglass.ico"))), wxNullBitmap, wxITEM_CHECK, _("Start/Stop Time"), wxEmptyString);
     ToolBar1->Realize();
     SetToolBar(ToolBar1);
+    FileDialogOpen = new wxFileDialog(this, _("Open"), wxEmptyString, wxEmptyString, _("Graphscript Files (*.grs)|*.grs|All Files (*.*)|*.*"), wxFD_DEFAULT_STYLE|wxFD_FILE_MUST_EXIST, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
+    FileDialogSaveAs = new wxFileDialog(this, _("Save As"), wxEmptyString, wxEmptyString, _("Graphscript Files (*.grs)|*.grs|All Files (*.*)|*.*"), wxFD_SAVE|wxFD_OVERWRITE_PROMPT, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
     BoxSizer1->SetSizeHints(this);
-    
+
     Connect(ID_TXTEXPR,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&proceduralgrapherDialog::Tokenize);
     Connect(ID_TXTOUTPUT,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&proceduralgrapherDialog::OntxtOutputText);
     Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::Onchk3DClick);
@@ -422,13 +425,22 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     GLCanvas1->Connect(wxEVT_MOUSEWHEEL,(wxObjectEventFunction)&proceduralgrapherDialog::OnGLCanvas1MouseWheel,0,this);
     GLCanvas1->Connect(wxEVT_SIZE,(wxObjectEventFunction)&proceduralgrapherDialog::OnGLCanvas1Resize,0,this);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&proceduralgrapherDialog::OnTimer1Trigger);
+    Connect(tbrNew,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::OnFileNew);
+    Connect(tbrOpen,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::OnFileOpen);
+    Connect(tbrSave,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::OnFileSave);
+    Connect(tbrSave,wxEVT_COMMAND_TOOL_RCLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::OnFileSaveAs);
+    Connect(tbrTime,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::OnbtnStartStopTimeClick);
+    Connect(tbrTime,wxEVT_COMMAND_TOOL_RCLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::OnbtnResetTimeClick);
     //*)
-    wxAcceleratorEntry entries[4];
+    wxAcceleratorEntry entries[7];
     entries[0].Set(wxACCEL_CTRL, (int) 'T', ID_BUTTON1);
     entries[1].Set(wxACCEL_CTRL, (int) 'R', ID_BUTTON2);
     entries[2].Set(wxACCEL_CTRL, (int) 'D', ID_CHECKBOX1);
     entries[3].Set(wxACCEL_CTRL, (int) 'G', ID_CHECKBOX2);
-    wxAcceleratorTable accel(4, entries);
+    entries[4].Set(wxACCEL_CTRL, (int) 'N', tbrNew);
+    entries[5].Set(wxACCEL_CTRL, (int) 'O', tbrOpen);
+    entries[6].Set(wxACCEL_CTRL, (int) 'S', tbrSave);
+    wxAcceleratorTable accel(7, entries);
     this->SetAcceleratorTable(accel);
     GLContext1 = new wxGLContext(GLCanvas1);
     OutputBox = txtOutput;
@@ -481,7 +493,8 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     program = p.blk();
     validprogram = true;
     interpret();
-
+    filename = "Untitled";
+    filehaschanged = false;
 }
 
 proceduralgrapherDialog::~proceduralgrapherDialog()
@@ -556,6 +569,11 @@ void proceduralgrapherDialog::Tokenize(wxCommandEvent& event)
 
     parse();
     interpret();
+    if (!filehaschanged)
+    {
+        filehaschanged = true;
+        this->SetTitle("Procedural Grapher - " + filename + "*");
+    }
 }
 
 void proceduralgrapherDialog::OncanvasPaint(wxPaintEvent& event)
@@ -885,12 +903,16 @@ void proceduralgrapherDialog::OnbtnStartStopTimeClick(wxCommandEvent& event)
         Timer1.Stop();
         StopWatch1.Pause();
         btnStartStopTime->SetLabel("Start Time");
+        if (!ToolBarItem4->IsToggled())
+            ToolBarItem4->SetToggle(true);
     }
     else
     {
         Timer1.Start();
         StopWatch1.Resume();
         btnStartStopTime->SetLabel("Stop Time");
+        if (!ToolBarItem4->IsToggled())
+            ToolBarItem4->SetToggle(true);
    }
 }
 
@@ -913,4 +935,82 @@ void proceduralgrapherDialog::OnbtnResetTimeClick(wxCommandEvent& event)
 void proceduralgrapherDialog::OnchkGridClick(wxCommandEvent& event)
 {
     interpret();
+}
+
+void proceduralgrapherDialog::OnFileOpen(wxCommandEvent& event)
+{
+    std::cout << "LOL";
+    if (filehaschanged)
+    {
+        int response = wxMessageDialog(this, "Save changes to " + filename + "?", "Open File", wxYES_NO | wxCANCEL | wxICON_EXCLAMATION).ShowModal();
+        if (response == wxID_CANCEL)
+            return;
+        if (response == wxID_YES)
+            OnFileSave(event);
+    }
+    if (FileDialogOpen->ShowModal() == wxID_OK)
+    {
+        filepath = FileDialogOpen->GetPath();
+        txtExpr->LoadFile(filepath);
+        filename = FileDialogOpen->GetFilename();
+        this->SetTitle("Procedural Grapher - " + filename);
+        filehaschanged = false;
+    }
+
+}
+
+
+void proceduralgrapherDialog::OnFileSave(wxCommandEvent& event)
+{
+    if (filename == "Untitled")
+    {
+        OnFileSaveAs(event);
+        return;
+    }
+    if (filehaschanged)
+    {
+        txtExpr->SaveFile(filepath);
+        filehaschanged = false;
+        this->SetTitle("Procedural Grapher - " + filename);
+    }
+}
+
+void proceduralgrapherDialog::OnFileSaveAs(wxCommandEvent& event)
+{
+    if (FileDialogSaveAs->ShowModal() == wxID_OK)
+    {
+        filehaschanged = false;
+        filename = FileDialogSaveAs->GetFilename();
+        filepath = FileDialogSaveAs->GetPath();
+        txtExpr->SaveFile(filepath);
+        this->SetTitle("Procedural Grapher - " + filename);
+    }
+}
+
+void proceduralgrapherDialog::loadfile(std::string filepath_)
+{
+    filepath = filepath_;
+    txtExpr->LoadFile(filepath);
+    size_t pos = filepath.rfind("\\");
+    if (pos == -1)
+        pos = filepath.rfind("/");
+    filename = filepath.substr(pos + 1, -1);
+    this->SetTitle("Procedural Grapher - " + filename);
+    filehaschanged = false;
+}
+
+void proceduralgrapherDialog::OnFileNew(wxCommandEvent& event)
+{
+    if (filehaschanged)
+    {
+        int response = wxMessageDialog(this, "Save changes to " + filename + "?", "New File", wxYES_NO | wxCANCEL | wxICON_EXCLAMATION).ShowModal();
+        if (response == wxID_CANCEL)
+            return;
+        if (response == wxID_YES)
+            OnFileSave(event);
+    }
+    txtExpr->SetValue("");
+    filename = "Untitled";
+    this->SetTitle("Procedural Grapher - Untitled");
+    filehaschanged = false;
 }

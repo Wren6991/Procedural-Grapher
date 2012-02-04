@@ -19,6 +19,7 @@
 #include <wx/toolbar.h>
 #include <wx/stopwatch.h>
 #include <wx/panel.h>
+#include <wx/filedlg.h>
 #include <wx/button.h>
 #include <wx/frame.h>
 #include <wx/timer.h>
@@ -37,6 +38,7 @@ class proceduralgrapherDialog: public wxFrame
         void init3d();
         void endgl();
         void print(std::string str);
+        void loadfile(std::string);
 
     private:
 
@@ -62,6 +64,11 @@ class proceduralgrapherDialog: public wxFrame
         void OnGLCanvas1RightDown(wxMouseEvent& event);
         void OnchkGridClick(wxCommandEvent& event);
         void OnPollTimerTrigger(wxTimerEvent& event);
+        void OnFileOpen(wxCommandEvent& event);
+        void OnSave(wxCommandEvent& event);
+        void OnFileSave(wxCommandEvent& event);
+        void OnFileSaveAs(wxCommandEvent& event);
+        void OnFileNew(wxCommandEvent& event);
         //*)
         void parse();
         void interpret();
@@ -94,6 +101,7 @@ class proceduralgrapherDialog: public wxFrame
         wxTextCtrl* txtOutput;
         wxNotebook* Notebook1;
         wxToolBarToolBase* ToolBarItem3;
+        wxFileDialog* FileDialogOpen;
         wxGLCanvas* GLCanvas1;
         wxButton* btnResetTime;
         wxPanel* Panel1;
@@ -106,6 +114,7 @@ class proceduralgrapherDialog: public wxFrame
         wxToolBarToolBase* ToolBarItem2;
         wxTimer Timer1;
         wxCheckBox* chk3D;
+        wxFileDialog* FileDialogSaveAs;
         //*)
         std::vector <token> tokens;
         parser p;
@@ -119,6 +128,9 @@ class proceduralgrapherDialog: public wxFrame
         bool middledown;
         int lastcanvaswidth;
         int lastcanvasheight;
+        bool filehaschanged;
+        std::string filename;
+        std::string filepath;
         DECLARE_EVENT_TABLE()
 };
 

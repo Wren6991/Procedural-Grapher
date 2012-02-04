@@ -112,6 +112,8 @@ std::vector <token> tokenize(std::string str)
             goto comment;
         else if (c == '"')
             goto string;
+        else if (c == '.')
+            goto dot;
         else
             goto lexed;
     number:
@@ -250,6 +252,10 @@ std::vector <token> tokenize(std::string str)
             goto string;
         tokens.push_back(token(t_string, sbuf.str.substr(startindex + 1, sbuf.index - startindex - 2)));
         c = sbuf.next();
+        goto start;
+    dot:
+        c = sbuf.next();
+        tokens.push_back(token(t_dot, "."));
         goto start;
     lexed:
 

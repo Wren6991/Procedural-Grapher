@@ -25,25 +25,19 @@ bool proceduralgrapherApp::OnInit()
     wxInitAllImageHandlers();
     if ( wxsOK )
     {
-    	proceduralgrapherDialog* Dlg = new proceduralgrapherDialog(0);
+    	Dlg = new proceduralgrapherDialog(0);
     	SetTopWindow(Dlg);
     	Dlg->SetIcon(wxIcon("aaaa", wxBITMAP_TYPE_ICO_RESOURCE));
         Dlg->Show();
     	Dlg->init2d();
     	Dlg->endgl();
+    	if (argc > 1)
+    	{
+            Dlg->loadfile(argv[1].ToStdString());
+    	}
     }
 
     return wxsOK;
 
 }
-
-/*int ::(wxEvent& event)
-{
-    if (event.GetEventType() == wxEVT_KEY_DOWN)
-    {
-        wxMessageBox("the quick bromn fox jumps over the lazy dog");
-    }
-}*/
-
-
 

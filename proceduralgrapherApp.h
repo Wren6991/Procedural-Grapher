@@ -11,9 +11,14 @@
 #define PROCEDURALGRAPHERAPP_H
 
 #include <wx/app.h>
+#include <wx/cmdline.h>
+
+
+#include "proceduralgrapherMain.h"
 
 class proceduralgrapherApp : public wxApp
 {
+    proceduralgrapherDialog* Dlg;
     public:
         virtual bool OnInit();
 };

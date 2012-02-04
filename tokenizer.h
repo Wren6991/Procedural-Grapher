@@ -52,6 +52,7 @@ typedef enum {
     t_rbrace,
     t_lsquareb,
     t_rsquareb,
+    t_dot,
     n_tokens,   //ought to end here really
     e_value,
     e_nostatement,
