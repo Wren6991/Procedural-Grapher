@@ -499,8 +499,8 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
 
 proceduralgrapherDialog::~proceduralgrapherDialog()
 {
-    //(*Destroy(proceduralgrapherDialog)
-    //*)
+    validprogram = false;
+    delete program;
 }
 
 void proceduralgrapherDialog::OnQuit(wxCommandEvent& event)
@@ -878,7 +878,7 @@ void proceduralgrapherDialog::OnGLCanvas1Resize(wxSizeEvent& event)
     parserdata.back = (parserdata.back - centrez) * event.GetSize().GetWidth() / lastcanvaswidth + centrez;
     lastcanvasheight = event.GetSize().GetHeight();
     lastcanvaswidth = event.GetSize().GetWidth();
-    if(!Timer1.IsRunning())
+    if(validprogram && !Timer1.IsRunning())
         interpret();
 }
 
@@ -939,7 +939,6 @@ void proceduralgrapherDialog::OnchkGridClick(wxCommandEvent& event)
 
 void proceduralgrapherDialog::OnFileOpen(wxCommandEvent& event)
 {
-    std::cout << "LOL";
     if (filehaschanged)
     {
         int response = wxMessageDialog(this, "Save changes to " + filename + "?", "Open File", wxYES_NO | wxCANCEL | wxICON_EXCLAMATION).ShowModal();

@@ -480,7 +480,7 @@ void interpreter::evaluate(statement* stat)
             arglist_top = NULL;
             if (stat->stat.funcstat->args.size() > 0)
             {
-                arglist_top = new arglist_member;
+                arglist_top = new arglist_member();
                 arglist_top->v = evaluate(stat->stat.funcstat->args[0]);
                 arglist_current = arglist_top;
             }
