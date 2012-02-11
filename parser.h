@@ -3,6 +3,12 @@
 
 #include "tokenizer.h"
 
+class error
+{
+    public:
+    std::string errstring;
+    error(std::string);
+};
 
 class block;
 class procedurecall;
@@ -70,6 +76,7 @@ class value
 
     bool expd;
     value* b;
+    value();
     ~value();
 };
 
@@ -281,6 +288,7 @@ class parser
     block* blk();
     explicitplot* expplot();
     implicitplot* impplot();
+    assg_lvalue getlvalue(std::string);
 };
 
 

@@ -325,28 +325,120 @@ statement* parser::stat()
             assignment *a = new assignment;
             a->lvalue.isarray = false;
             a->lvalue.str = id;
-            if (t.type == t_lsquareb)
+
+            value* temp = NULL;
+
+            while (t.type == t_lsquareb || t.type == t_dot || t.type == t_lparen)
             {
-                a->lvalue.isarray = true;
-                a->lvalue.ai = new arrayitem;
-                a->lvalue.ai->array = new value;
-                a->lvalue.ai->array->negative = false;
-                a->lvalue.ai->array->expd = false;
-                a->lvalue.ai->array->type = t_id;
-                a->lvalue.ai->array->var = id;
-                while (accept(t_lsquareb))
+                if (accept(t_lsquareb))
                 {
-                    value* arr = new value;
+                    value* arr = new value;             //create a new array-key pair.
                     arr->negative = false;
                     arr->expd = false;
                     arr->type = t_lsquareb;
                     arr->arritem = new arrayitem;
-                    arr->arritem->array = a->lvalue.ai->array;
+                    if (a->lvalue.isarray)
+                    {
+                        arr->arritem->array = a->lvalue.ai->array;
+                    }
+                    else    //last one was a function, or this is the first loop.
+                    {
+                        a->lvalue.isarray = true;
+                        a->lvalue.ai = new arrayitem;
+                        if (temp == NULL)   //this must be the first loop, else the function call would have made this non-null.
+                        {
+                            arr->arritem->array = new value;
+                            arr->arritem->array->type = t_id;
+                            arr->arritem->array->var = id;
+                        }
+                        else    // last loop was a functioncall.
+                        {
+                            arr->arritem->array = temp;
+                            temp = NULL;    //signal to loop end that the last loop was not a function call.
+                        }
+                    }
                     arr->arritem->index = expr();
-                    a->lvalue.ai->array = arr;      //stuff old array inside arr, make arr the new array - previous array-index pair becomes new array. at the end,  we just return a; this is the top-level array-index pair. At runtime, top-level array is evaluated recursively.
-                    expect(t_rsquareb);
+                    a->lvalue.ai->array = arr;      //stuff old lvalue array inside arr, make arr the new lvalue array - previous array-key pair becomes new array. at the end,  we just return v; this is the top-level array-index pair. At runtime, top-level array is evaluated recursively.
+                    expect(t_rsquareb);             //array is actually a value that contains an arrayitem that contains an array - this is so that id variables can be treated in the same way as arr-key pairs.
+                }
+                else if (accept(t_dot))
+                {
+                    value* arr = new value;
+                    arr->negative = false;          // arrrr, I'm a pirate
+                    arr->expd = false;
+                    arr->type = t_lsquareb;
+                    arr->arritem = new arrayitem;
+                    if (a->lvalue.isarray)
+                    {
+                        arr->arritem->array = a->lvalue.ai->array;
+                    }
+                    else    //last one was a function, or this is the first loop.
+                    {
+                        a->lvalue.isarray = true;
+                        a->lvalue.ai = new arrayitem;
+                        if (temp == NULL)   //this must be the first loop, else the function call would have made this non-null.
+                        {
+                            arr->arritem->array = new value;
+                            arr->arritem->array->type = t_id;
+                            arr->arritem->array->var = id;
+                        }
+                        else    // last loop was a functioncall.
+                        {
+                            arr->arritem->array = temp;
+                            temp = NULL;    //signal to loop end that the last loop was not a function call.
+                        }
+                    }
+                    expect(t_id);
+                    arr->arritem->index = new expression();
+                    arr->arritem->index->comparisons.push_back(new comparison());
+                    arr->arritem->index->comparisons[0]->a = new sum();
+                    arr->arritem->index->comparisons[0]->a->terms.push_back(new term());
+                    arr->arritem->index->comparisons[0]->a->terms[0]->values.push_back(new value);
+                    arr->arritem->index->comparisons[0]->a->terms[0]->values[0]->type = t_string;
+                    arr->arritem->index->comparisons[0]->a->terms[0]->values[0]->var = last.value;    //build a whole tree - thank god this only happens at parse-time.
+
+                    a->lvalue.ai->array = arr;      //stuff old lvalue array inside arr, make arr the new lvalue array - previous array-key pair becomes new array. at the end,  we just return v; this is the top-level array-index pair. At runtime, top-level array is evaluated recursively.
+                }
+                else if (accept(t_lparen))
+                {
+                    procedurecall *p = new procedurecall;
+                    if (a->lvalue.isarray)
+                    {
+                        p->name = a->lvalue.ai->array;
+                        a->lvalue.isarray = false;
+                    }
+                    else if (temp != NULL)
+                    {
+                        p->name = temp;
+                        temp = NULL;
+                    }
+                    else    // this must be the first loop - array indexes make isarray true, and functioncalls make temp non-null.
+                    {
+                        p->name = new value;
+                        p->name->type = t_id;
+                        p->name->negative = false;
+                        p->name->expd = false;
+                        p->name->var = id;
+                    }
+                    while (!accept(t_rparen))
+                    {
+                        p->args.push_back(expr());
+                        if(!accept(t_comma))
+                        {
+                            expect(t_rparen);
+                            break;
+                        }
+                    }
+                    temp = new value();
+                    temp->type = n_procedure;
+                    temp->proccall = p;
+                    temp->negative = false;
+                    temp->expd = false;
                 }
             }
+            if (temp != NULL)
+                throw(error("Error: cannot assign to expression"));
+            std::cout << t.type;
 
             a->ismultiple = false;
             while (accept(t_comma))
@@ -585,6 +677,7 @@ statement* parser::stat()
     {
         s->type = t_eof;
         delete s;
+
         throw(e_nostatement);
     }
     return s;
@@ -833,4 +926,19 @@ bool tagged_value::operator<(const tagged_value& other) const
             return val.str < other.val.str;
     else
         return false;
+}
+
+error::error(std::string errstring_)
+{
+    errstring = errstring_;
+}
+
+value::value()
+{
+    negative = false;
+    expd = false;
+}
+
+assg_lvalue parser::getlvalue(std::string str)
+{
 }

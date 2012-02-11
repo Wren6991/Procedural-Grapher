@@ -6,12 +6,7 @@
 #include "parser.h"
 #include "draw.h"
 
-class error
-{
-    public:
-    std::string errstring;
-    error(std::string);
-};
+
 
 typedef struct g_data {
     double left;

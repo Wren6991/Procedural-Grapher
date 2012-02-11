@@ -80,7 +80,7 @@ std::string token_type_names[] = {
     "right brace",
     "left squarebr.",
     "right squarebr.",
-    "."
+    ".",
     "no. tokens",
     "e_value",
     "e_nostatement",
@@ -92,6 +92,14 @@ std::string token_type_names[] = {
     "explicit plot",
     "implicit plot"
 };
+
+std::string type_names[] = {
+    "nil",
+    "number",
+    "string",
+    "procedure",
+    "array"
+    };
 
 double lnbodge(double x)
 {
@@ -218,6 +226,10 @@ tagged_value print_tv(arglist_member* arg)
             (*OutputBox) << arg->v.val.n;
         else if (arg->v.type == val_string)
             (*OutputBox) << interp_ptr->strings[arg->v.val.str];
+        else if (arg->v.type == val_array)
+            (*OutputBox) << "(table: " << arg->v.val.arr << ")";
+        else if (arg->v.type == val_nil)
+            (*OutputBox) << "(nil)";
         else
             throw(error("Error: expected number or string as argument to function \"print\""));
         arg = arg->next;
@@ -294,6 +306,23 @@ tagged_value setpersistent(arglist_member *arg)
     if (arg->next == NULL)
         throw(error("Error: expected more arguments to function \"setpersistent\""));
     persistent_vars[interp_ptr->strings[arg->v.val.str]] = arg->next->v;
+    return tagged_value();
+}
+
+tagged_value type_tv(arglist_member *arg)
+{
+    tagged_value rv;
+    if (arg == NULL)
+    {
+        rv.val.str = interp_ptr->addstring("nil");
+        rv.type = val_string;
+    }
+    else
+    {
+        rv.val.str = interp_ptr->addstring(type_names[arg->v.type]);
+        rv.type = val_string;
+    }
+    return rv;
 }
 //helper functions
 enum wxbuildinfoformat {
@@ -486,6 +515,7 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     funcs["prng"] = prng_tv;
     funcs["getpersistent"] = getpersistent;
     funcs["setpersistent"] = setpersistent;
+    funcs["type"] = type_tv;
     lastcanvaswidth = 300;
     lastcanvasheight = 300;
     tokens = tokenize(std::string("y = x^3 - x"), funcs);
@@ -543,9 +573,10 @@ void proceduralgrapherDialog::interpret()
 
     if (validprogram)
     {
-         try {
-            interpreter interp(funcs, parserdata);
-            interp_ptr = &interp;
+        interpreter interp(funcs, parserdata);
+        interp_ptr = &interp;
+        try {
+
             interp.evaluate(program);
         }
         catch (token_type_enum t)
@@ -554,7 +585,7 @@ void proceduralgrapherDialog::interpret()
         }
         catch (error e)
         {
-            (*txtOutput) << e.errstring << "\n";
+            (*txtOutput) << e.errstring << "\n" << "Stack level: " << interp.stacklevel << "\n";
         }
     }
 
@@ -990,7 +1021,7 @@ void proceduralgrapherDialog::loadfile(std::string filepath_)
 {
     filepath = filepath_;
     txtExpr->LoadFile(filepath);
-    size_t pos = filepath.rfind("\\");
+    int pos = filepath.rfind("\\");
     if (pos == -1)
         pos = filepath.rfind("/");
     filename = filepath.substr(pos + 1, -1);

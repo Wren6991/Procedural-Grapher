@@ -456,6 +456,7 @@ void interpreter::evaluate(statement* stat)
                         //std::cout << "Assigning to array " << temp.val.arr << ", index " << evaluate(stat->stat.assignstat->extra_lvalues[i].ai->array->arritem->index).val.n << ", type " << val_names[vals[i].type] << "\n";
 
                         arrays[temp.val.arr][evaluate(stat->stat.assignstat->extra_lvalues[i].ai->array->arritem->index)] = vals[i];
+                        std::cout << "assigned a " << val_names[vals[i].type] << " to array number " << temp.val.arr << "\n";
                     }
                 }
                 delete vals;
@@ -469,7 +470,11 @@ void interpreter::evaluate(statement* stat)
                     if (temp.type != val_array)
                          throw(error("Error: attempt to index non-array (" + val_names[temp.type] + ")"));
                         //std::cout << "Assigning to array " << temp.val.arr << ", index " << evaluate(stat->stat.assignstat->lvalue.ai->array->arritem->index).val.n << ", type " << val_names[evaluate(stat->stat.assignstat->rvalue).type] << "\n";
-                        arrays[temp.val.arr][evaluate(stat->stat.assignstat->lvalue.ai->array->arritem->index)] = evaluate(stat->stat.assignstat->rvalue);
+                        tagged_value index = evaluate(stat->stat.assignstat->lvalue.ai->array->arritem->index);
+                        tagged_value rvalue = evaluate(stat->stat.assignstat->rvalue);
+                        std::cout << "assigned a " << val_names[rvalue.type] << " to array number " << temp.val.arr << ", index type " << val_names[index.type] << "\n";
+                        arrays[temp.val.arr][index] = rvalue;
+
                 }
             break;
         case t_func:
@@ -1122,6 +1127,8 @@ void interpreter::evaluate(implicitplot* relation)
 {
     if (!data.is3d)
     {
+        if(evaluate(relation->expr).type != val_number)
+            return; //throw(error("Error: attempt to plot non-numeric expression"));    Disabled to allow for more complex function calls without breaking the parser
         bool equalsonly = relation->haseq && !relation->hasineq;
         int ncells = data.detail / 2 + 1;
         double** grid = new double*[ncells + 1];
@@ -1130,8 +1137,7 @@ void interpreter::evaluate(implicitplot* relation)
         double stepx = (data.right - data.left) / (ncells - 1);
         double stepy = (data.top - data.bottom) / (ncells - 1);
         double x, y;
-        if(evaluate(relation->expr).type != val_number)
-            throw(error("Error: attempt to plot non-numeric expression"));
+
         vars["x"].type = val_number;
         vars["y"].type = val_number;
         x = floor(data.left/stepx) * stepx;
@@ -1356,7 +1362,7 @@ void interpreter::evaluate(implicitplot* relation)
         double stepz = (data.front - data.back) / (ncells - 1);
         double x, y, z;
         if(evaluate(relation->expr).type != val_number)
-            throw(error("Error: attempt to plot non-numeric expression"));
+            return; //throw(error("Error: attempt to plot non-numeric expression"));
         vars["x"].type = val_number;
         vars["y"].type = val_number;
         vars["z"].type = val_number;
@@ -1383,12 +1389,12 @@ void interpreter::evaluate(implicitplot* relation)
         }
 
         vert3f*** normals = data.normals;
-        for (int i = 0; i <= ncells; i++)
+        /*for (int i = 0; i <= ncells; i++)
         {
             normals[i] = new vert3f*[ncells + 1];
             for(int j = 0; j <= ncells; j++)
                 normals[i][j] = new vert3f[ncells + 1];
-        }
+        }*/
 
 
         x = floor(data.left/stepx) * stepx;
@@ -1720,11 +1726,6 @@ procedure::procedure(std::vector <std::string> args_, block* entrypoint_)
 procedure::~procedure()
 {
     delete entrypoint;
-}
-
-error::error(std::string errstring_)
-{
-    errstring = errstring_;
 }
 
 arglist_member::arglist_member()
