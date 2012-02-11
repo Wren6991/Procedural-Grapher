@@ -219,7 +219,7 @@ value* parser::val()
     }
     else
         throw(n_value);
-    while (t.type == t_lsquareb || t.type == t_dot || t.type == t_lparen)
+    while (t.type == t_lsquareb || t.type == t_dot || t.type == t_colon || t.type == t_lparen)
     {
         if (accept(t_lsquareb))
         {
@@ -234,13 +234,15 @@ value* parser::val()
             v = a;      //stuff v into a, make a the new v - previous array-index pair becomes new array. at the end,  we just return v; this is the top-level array-index pair. At runtime, top-level array is evaluated recursively.
             expect(t_rsquareb);
         }
-        else if (accept(t_dot))
+        else if (accept(t_dot) || accept(t_colon))
         {
             value* a = new value;
             a->type = t_lsquareb;
             a->negative = false;
             a->arritem = new arrayitem;
             a->arritem->array = v;
+            if (last.type == t_colon)
+                a->arritem->pass_self = true;
             expect(t_id);
             a->arritem->index = new expression();
             a->arritem->index->comparisons.push_back(new comparison());
@@ -328,7 +330,7 @@ statement* parser::stat()
 
             value* temp = NULL;
 
-            while (t.type == t_lsquareb || t.type == t_dot || t.type == t_lparen)
+            while (t.type == t_lsquareb || t.type == t_dot || t.type == t_colon || t.type == t_lparen)
             {
                 if (accept(t_lsquareb))
                 {
@@ -361,7 +363,7 @@ statement* parser::stat()
                     a->lvalue.ai->array = arr;      //stuff old lvalue array inside arr, make arr the new lvalue array - previous array-key pair becomes new array. at the end,  we just return v; this is the top-level array-index pair. At runtime, top-level array is evaluated recursively.
                     expect(t_rsquareb);             //array is actually a value that contains an arrayitem that contains an array - this is so that id variables can be treated in the same way as arr-key pairs.
                 }
-                else if (accept(t_dot))
+                else if (accept(t_dot) || accept(t_colon))
                 {
                     value* arr = new value;
                     arr->negative = false;          // arrrr, I'm a pirate
@@ -388,6 +390,8 @@ statement* parser::stat()
                             temp = NULL;    //signal to loop end that the last loop was not a function call.
                         }
                     }
+                    if (last.type == t_colon)
+                        arr->arritem->pass_self = true;
                     expect(t_id);
                     arr->arritem->index = new expression();
                     arr->arritem->index->comparisons.push_back(new comparison());
@@ -438,7 +442,6 @@ statement* parser::stat()
             }
             if (temp != NULL)
                 throw(error("Error: cannot assign to expression"));
-            std::cout << t.type;
 
             a->ismultiple = false;
             while (accept(t_comma))
@@ -941,4 +944,9 @@ value::value()
 
 assg_lvalue parser::getlvalue(std::string str)
 {
+}
+
+arrayitem::arrayitem()
+{
+    pass_self = false;
 }

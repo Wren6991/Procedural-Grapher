@@ -58,6 +58,8 @@ class arrayitem
     public:
     value* array;
     expression* index;
+    bool pass_self;
+    arrayitem();
 };
 
 class value

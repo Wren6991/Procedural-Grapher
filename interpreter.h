@@ -63,8 +63,7 @@ class interpreter
     std::vector < std::map <tagged_value, tagged_value> > arrays;
     std::vector <procedure*> procedures;    //pointers to procedures are maintained here for cleanup in destructor - actually called from vars map.
     g_data data;
-    bool receivedequals;
-    bool receivedinequal;
+    bool pass_self;
     int stacklevel;
 
     void getnextcolor();

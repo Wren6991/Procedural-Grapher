@@ -324,6 +324,7 @@ interpreter::interpreter(std::map<std::string, dfuncd> funcs_, g_data data_)
     vars["dt"] = data.dt / 1000.0;
     vars["pi"] = 3.14159265358979323846264338327950288419716939937510;  // TODO: make this more precise
     vars["e"] = 2.71828183;
+    pass_self = false;
     stacklevel = 0;
 }
 
@@ -456,7 +457,7 @@ void interpreter::evaluate(statement* stat)
                         //std::cout << "Assigning to array " << temp.val.arr << ", index " << evaluate(stat->stat.assignstat->extra_lvalues[i].ai->array->arritem->index).val.n << ", type " << val_names[vals[i].type] << "\n";
 
                         arrays[temp.val.arr][evaluate(stat->stat.assignstat->extra_lvalues[i].ai->array->arritem->index)] = vals[i];
-                        std::cout << "assigned a " << val_names[vals[i].type] << " to array number " << temp.val.arr << "\n";
+                        //std::cout << "assigned a " << val_names[vals[i].type] << " to array number " << temp.val.arr << "\n";
                     }
                 }
                 delete vals;
@@ -472,17 +473,16 @@ void interpreter::evaluate(statement* stat)
                         //std::cout << "Assigning to array " << temp.val.arr << ", index " << evaluate(stat->stat.assignstat->lvalue.ai->array->arritem->index).val.n << ", type " << val_names[evaluate(stat->stat.assignstat->rvalue).type] << "\n";
                         tagged_value index = evaluate(stat->stat.assignstat->lvalue.ai->array->arritem->index);
                         tagged_value rvalue = evaluate(stat->stat.assignstat->rvalue);
-                        std::cout << "assigned a " << val_names[rvalue.type] << " to array number " << temp.val.arr << ", index type " << val_names[index.type] << "\n";
+                        //std::cout << "assigned a " << val_names[rvalue.type] << " to array number " << temp.val.arr << ", index type " << val_names[index.type] << "\n";
                         arrays[temp.val.arr][index] = rvalue;
 
                 }
             break;
         case t_func:
         {
-            arglist_member* arglist_top;
-            arglist_member* arglist_current;
-            arglist_member* arglist_next;
-            arglist_top = NULL;
+            arglist_member* arglist_top = NULL;
+            arglist_member* arglist_current = NULL;
+            arglist_member* arglist_next = NULL;
             if (stat->stat.funcstat->args.size() > 0)
             {
                 arglist_top = new arglist_member();
@@ -496,7 +496,8 @@ void interpreter::evaluate(statement* stat)
                 arglist_current->next = arglist_next;
                 arglist_current = arglist_next;
             }
-            arglist_current->next = NULL;
+            if (arglist_current != NULL)
+                arglist_current->next = NULL;
             //std::cout << stat->stat.funcstat->id << "\n";
             funcs[stat->stat.funcstat->id](arglist_top);
             if (arglist_top != NULL)
@@ -715,13 +716,24 @@ tagged_value interpreter::evaluate(value *v)
             if (rv.type != val_procedure) //not defined
                 throw(n_procedure);
             proc = rv.val.proc;
-
-            if(v->proccall->args.size() == proc->args.size())
+            unsigned int argoffset;
+            if (pass_self && proc->args.size() > 0)      //obj:method()  ->  obj.method(obj)
             {
-                for (unsigned int i = 0; i < proc->args.size(); i++)
+                argoffset = 1;
+                temps[proc->args[0]] = vars[proc->args[0]];
+                vars[proc->args[0]] = temp;
+                pass_self = false;
+            }
+            else
+            {
+                argoffset = 0;
+            }
+            if(v->proccall->args.size() + argoffset == proc->args.size())
+            {
+                for (unsigned int i = argoffset; i < proc->args.size(); i++)            //oooo  ->  xooo
                 {
                     temps[proc->args[i]] = vars[proc->args[i]];
-                    vars[proc->args[i]] = evaluate(v->proccall->args[i]);
+                    vars[proc->args[i]] = evaluate(v->proccall->args[i - argoffset]);
                 }
                 try
                 {
@@ -741,8 +753,9 @@ tagged_value interpreter::evaluate(value *v)
             }
             else
             {
-                if (v->proccall->args.size() > proc->args.size())
-                    throw(error("Error: too many arguments to procedure"));
+                std::cout << v->proccall->args.size() + argoffset << " != " << proc->args.size() << "\n";
+                if (v->proccall->args.size() + argoffset > proc->args.size())
+                    throw(error("Error: too many arguments to procedure "));
                 else
                     throw(error("Error: too few arguments to procedure"));
             }
@@ -759,6 +772,11 @@ tagged_value interpreter::evaluate(value *v)
             else
             {
                 //std::cout << "indexing array " << rv.val.arr << ", index " << evaluate(v->arritem->index).val.n << "\n";
+                if (v->arritem->pass_self)
+                {
+                    pass_self = true;
+                    temp = rv;
+                }
                 rv = arrays[rv.val.arr][evaluate(v->arritem->index)];
             }
             break;

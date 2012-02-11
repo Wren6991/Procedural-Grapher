@@ -430,7 +430,7 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     ToolBar1 = new wxToolBar(this, ID_TOOLBAR1, wxDefaultPosition, wxDefaultSize, wxRAISED_BORDER|wxSTATIC_BORDER, _T("ID_TOOLBAR1"));
     ToolBarItem1 = ToolBar1->AddTool(tbrNew, _("New"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\page_add.ico"))), wxNullBitmap, wxITEM_NORMAL, _("New File"), wxEmptyString);
     ToolBarItem2 = ToolBar1->AddTool(tbrOpen, _("Open"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\folder_page.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Open File"), wxEmptyString);
-    ToolBarItem3 = ToolBar1->AddTool(tbrSave, _("Save"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\disk.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Save File (Right Click: Save As)"), wxEmptyString);
+    ToolBarItem3 = ToolBar1->AddTool(tbrSave, _("Save\\tCtrl-Shift-S"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\disk.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Save File (Right Click: Save As)"), wxEmptyString);
     ToolBarItem4 = ToolBar1->AddTool(tbrTime, _("Time"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\hourglass.ico"))), wxNullBitmap, wxITEM_CHECK, _("Start/Stop Time"), wxEmptyString);
     ToolBar1->Realize();
     SetToolBar(ToolBar1);
@@ -460,6 +460,7 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     Connect(tbrSave,wxEVT_COMMAND_TOOL_RCLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::OnFileSaveAs);
     Connect(tbrTime,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::OnbtnStartStopTimeClick);
     Connect(tbrTime,wxEVT_COMMAND_TOOL_RCLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::OnbtnResetTimeClick);
+    Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&proceduralgrapherDialog::OnClose);
     //*)
     wxAcceleratorEntry entries[7];
     entries[0].Set(wxACCEL_CTRL, (int) 'T', ID_BUTTON1);
@@ -529,6 +530,7 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
 
 proceduralgrapherDialog::~proceduralgrapherDialog()
 {
+    std::cout << "Destructor...\n";
     validprogram = false;
     delete program;
 }
@@ -1043,4 +1045,26 @@ void proceduralgrapherDialog::OnFileNew(wxCommandEvent& event)
     filename = "Untitled";
     this->SetTitle("Procedural Grapher - Untitled");
     filehaschanged = false;
+}
+
+void proceduralgrapherDialog::OnClose(wxCloseEvent& event)
+{
+    std::cout << "Close event...\n";
+    if (filehaschanged)
+    {
+        int response = wxMessageDialog(this, "Save changes to " + filename + "?", "Procedural Grapher", wxYES_NO | wxCANCEL | wxICON_EXCLAMATION).ShowModal();
+        if (response == wxID_CANCEL)
+            event.Veto();
+        else if (response == wxID_YES)
+        {
+            wxCommandEvent cmdevent = wxCommandEvent();
+            OnFileSave(cmdevent);
+            if (!filehaschanged)
+                this->Destroy();
+        }
+        else
+            this->Destroy();
+    }
+    else
+        this->Destroy();
 }

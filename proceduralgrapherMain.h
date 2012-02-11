@@ -69,6 +69,7 @@ class proceduralgrapherDialog: public wxFrame
         void OnFileSave(wxCommandEvent& event);
         void OnFileSaveAs(wxCommandEvent& event);
         void OnFileNew(wxCommandEvent& event);
+        void OnClose(wxCloseEvent& event);
         //*)
         void parse();
         void interpret();

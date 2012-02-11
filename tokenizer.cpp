@@ -114,6 +114,8 @@ std::vector <token> tokenize(std::string str)
             goto string;
         else if (c == '.')
             goto dot;
+        else if (c == ':')
+            goto colon;         //I should probably but this list in a case statement.
         else
             goto lexed;
     number:
@@ -256,6 +258,10 @@ std::vector <token> tokenize(std::string str)
     dot:
         c = sbuf.next();
         tokens.push_back(token(t_dot, "."));
+        goto start;
+    colon:
+        c = sbuf.next();
+        tokens.push_back(token(t_colon, ":"));
         goto start;
     lexed:
 
