@@ -1,3 +1,6 @@
+#ifndef _INTERPRETER_H_
+#define _INTERPRETER_H_
+
 #include <iostream>
 #include <vector>
 #include <map>
@@ -85,3 +88,5 @@ class interpreter
 };
 
 bool lessthan_tv(tagged_value, tagged_value);
+
+#endif // _INTERPRETER_H_

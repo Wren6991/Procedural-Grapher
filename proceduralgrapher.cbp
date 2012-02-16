@@ -64,6 +64,8 @@
 			<Add library="C:\wxWidgets-2.9.2\lib\gcc_dll\libwxmsw29u_gl.a" />
 			<Add library="C:\wxWidgets-2.9.2\lib\gcc_dll\libwxmsw29u.a" />
 		</Linker>
+		<Unit filename="DebugDialog.cpp" />
+		<Unit filename="DebugDialog.h" />
 		<Unit filename="draw.cpp" />
 		<Unit filename="draw.h" />
 		<Unit filename="interpreter.cpp" />
@@ -87,6 +89,7 @@
 				<gui name="wxWidgets" src="proceduralgrapherApp.cpp" main="proceduralgrapherDialog" init_handlers="necessary" language="CPP" />
 				<resources>
 					<wxFrame wxs="wxsmith/proceduralgrapherframe.wxs" src="proceduralgrapherMain.cpp" hdr="proceduralgrapherMain.h" name="proceduralgrapherDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/DebugDialog.wxs" src="DebugDialog.cpp" hdr="DebugDialog.h" name="DebugDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

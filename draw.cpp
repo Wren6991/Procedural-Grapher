@@ -27,6 +27,10 @@ vert3f vert3f::operator+(vert3f v)
 {
     return vert3f(x + v.x, y + v.y, z + v.z);
 }
+vert3f vert3f::operator-(vert3f v)
+{
+    return vert3f(x - v.x, y - v.y, z - v.z);
+}
 vert3f vert3f::operator*(double s)
 {
     return vert3f(x*s, y*s, z*s);

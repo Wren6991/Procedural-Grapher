@@ -15,7 +15,7 @@
 //  procedures as values
 //  anonymous functions
 //  make interpretation iterative - self-maintained stack.
-//  t.k syntax (vs. t["k"])
+//  3d polar plots
 //  1 base for arrays intead of 0 base?
 //  settings
 //  local variables - either stack of maps, or store original values in a vector at call time and restore after return.

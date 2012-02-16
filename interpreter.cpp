@@ -4,6 +4,7 @@
 #include <sstream>
 
 const int MAX_STACK_LEVEL = 800;
+const double PI = 3.14159265358979323846264338327950288419716939937510;  // TODO: make this more precise
 
 std::string val_names[] = {
     "nil",
@@ -322,7 +323,7 @@ interpreter::interpreter(std::map<std::string, dfuncd> funcs_, g_data data_)
     vars["mousey"] = data.mousey;
     vars["time"] = data.time / 1000.0;
     vars["dt"] = data.dt / 1000.0;
-    vars["pi"] = 3.14159265358979323846264338327950288419716939937510;  // TODO: make this more precise
+    vars["pi"] = PI;
     vars["e"] = 2.71828183;
     pass_self = false;
     stacklevel = 0;
@@ -1123,6 +1124,86 @@ void interpreter::evaluate(explicitplot* relation)
                     lastj = j;
                 }
                 lastx = x;
+                lasti = i;
+            }
+            for (int i = 0; i < ncells + 3; i++)
+                delete grid[i];
+            delete grid;
+            for (int i = 0; i < ncells + 1; i++)
+                delete normals[i];
+            delete normals;
+        }
+        else if (relation->rangevar == "r")
+        {
+            int ncells = data.detail / 2 + 1;
+            vert3f** grid = new vert3f*[ncells + 3];        // mapping polar coord (theta, phi) to cartesian (x, y, z) - makes normal calcs + rendering easier.
+            for (int i = 0; i < ncells + 3; i++)
+                grid[i] = new vert3f[ncells + 3];           //    "fencing" vertex (+1) and 1 step padding on each side for normal calculation (+2).
+            double steptheta = PI * 2 / ncells;
+            double stepphi = PI * 2 / ncells;
+            double theta, phi, r;
+            vars["theta"].type = val_number;
+            vars["phi"].type = val_number;
+            if(evaluate(relation->expr).type != val_number)
+                throw(error("Error: attempt to plot non-numeric expression"));
+            theta = -PI;
+            for (int i = 0; i < ncells + 3; i++)
+            {
+                vars["theta"].val.n = theta;
+                phi = -PI;
+                for(int j = 0; j < ncells + 3; j++)
+                {
+                    vars["phi"].val.n = phi;
+                    r = evaluate(relation->expr).val.n;
+                    grid[i][j] = vert3f(r * cos(theta) * cos(phi), r * sin(theta), r * cos(theta) * sin(phi));
+                    //std::cout << "r: " << r << "v: (" << grid[i][j].x << ", " << grid[i][j].y << ", " << grid[i][j].z << ")\n";
+                    phi += stepphi;
+                }
+                theta += steptheta;
+            }
+            vert3f** normals = new vert3f*[ncells + 1];
+            for(int i = 0; i < ncells + 1; i++)
+                normals[i] = new vert3f[ncells + 1];
+
+            vert3f tana, tanb;
+            for(int i = 0; i <= ncells; i++)
+                for(int j = 0; j <= ncells; j++)
+                {
+                    tana = grid[i+2][j+1] - grid[i][j+1]; //tangent vector in line with theta polar rotation
+                    tanb = grid[i+1][j+2] - grid[i+1][j]; //tangent vector in line with phi polar rotation
+                    normals[i][j] = vert3f(
+                                           tana.y * tanb.z - tana.z * tanb.y,
+                                           tana.z * tanb.x - tana.x * tanb.z,
+                                           tana.x * tanb.y - tana.y * tanb.x
+                                          );                                            //cross product of the two tangent vectors
+                }
+
+            int lasti = 0;
+            int lastj;
+
+            vert3f currentvert;
+            for (int i = 1; i <= ncells; i++)
+            {
+                lastj = 0;
+                for(int j = 1; j <= ncells; j++)
+                {
+
+                    glBegin(GL_POLYGON);
+                    glNormal3f(normals[lasti][lastj].x, normals[lasti][lastj].y, normals[lasti][lastj].z);
+                    currentvert = grid[lasti + 1][lastj + 1];                          // +1 because of padding on left and bottom of grid (for normal calcs)
+                    glVertex3f(currentvert.x, currentvert.y, currentvert.z);
+                    glNormal3f(normals[i][lastj].x, normals[i][lastj].y, normals[i][lastj].z);
+                    currentvert = grid[i + 1][lastj + 1];
+                    glVertex3f(currentvert.x, currentvert.y, currentvert.z);
+                    glNormal3f(normals[i][j].x, normals[i][j].y, normals[i][j].z);
+                    currentvert = grid[i + 1][j + 1];
+                    glVertex3f(currentvert.x, currentvert.y, currentvert.z);
+                    glNormal3f(normals[lasti][j].x, normals[lasti][j].y, normals[lasti][j].z);
+                    currentvert = grid[lasti + 1][j + 1];
+                    glVertex3f(currentvert.x, currentvert.y, currentvert.z);
+                    glEnd();
+                    lastj = j;
+                }
                 lasti = i;
             }
             for (int i = 0; i < ncells + 3; i++)

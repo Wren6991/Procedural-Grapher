@@ -27,6 +27,7 @@
 #include "parser.h"
 #include <vector>
 #include <map>
+#include "DebugDialog.h"
 
 class proceduralgrapherDialog: public wxFrame
 {
@@ -39,6 +40,11 @@ class proceduralgrapherDialog: public wxFrame
         void endgl();
         void print(std::string str);
         void loadfile(std::string);
+        bool debugshown;
+        wxTextCtrl* getOutput()
+        {
+            return txtOutput;
+        }
 
     private:
 
@@ -70,6 +76,7 @@ class proceduralgrapherDialog: public wxFrame
         void OnFileSaveAs(wxCommandEvent& event);
         void OnFileNew(wxCommandEvent& event);
         void OnClose(wxCloseEvent& event);
+        void OnDebugClicked(wxCommandEvent& event);
         //*)
         void parse();
         void interpret();
@@ -92,6 +99,7 @@ class proceduralgrapherDialog: public wxFrame
         static const long tbrOpen;
         static const long tbrSave;
         static const long tbrTime;
+        static const long tbrDebug;
         static const long ID_TOOLBAR1;
         //*)
 
@@ -109,6 +117,7 @@ class proceduralgrapherDialog: public wxFrame
         wxTextCtrl* txtExpr;
         wxToolBarToolBase* ToolBarItem1;
         wxStopWatch StopWatch1;
+        wxToolBarToolBase* ToolBarItem5;
         wxBoxSizer* BoxSizer1;
         wxPanel* Panel2;
         wxCheckBox* chkGrid;
@@ -130,6 +139,7 @@ class proceduralgrapherDialog: public wxFrame
         int lastcanvaswidth;
         int lastcanvasheight;
         bool filehaschanged;
+        DebugDialog *debugdialog;
         std::string filename;
         std::string filepath;
         DECLARE_EVENT_TABLE()

@@ -21,6 +21,7 @@ class vert3f
     vert3f();
     vert3f(float, float, float);
     vert3f operator+(vert3f);
+    vert3f operator-(vert3f);
     vert3f operator*(double);
 };
 

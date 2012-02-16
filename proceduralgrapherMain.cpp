@@ -366,6 +366,7 @@ const long proceduralgrapherDialog::tbrNew = wxNewId();
 const long proceduralgrapherDialog::tbrOpen = wxNewId();
 const long proceduralgrapherDialog::tbrSave = wxNewId();
 const long proceduralgrapherDialog::tbrTime = wxNewId();
+const long proceduralgrapherDialog::tbrDebug = wxNewId();
 const long proceduralgrapherDialog::ID_TOOLBAR1 = wxNewId();
 //*)
 
@@ -432,6 +433,7 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     ToolBarItem2 = ToolBar1->AddTool(tbrOpen, _("Open"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\folder_page.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Open File"), wxEmptyString);
     ToolBarItem3 = ToolBar1->AddTool(tbrSave, _("Save\\tCtrl-Shift-S"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\disk.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Save File (Right Click: Save As)"), wxEmptyString);
     ToolBarItem4 = ToolBar1->AddTool(tbrTime, _("Time"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\hourglass.ico"))), wxNullBitmap, wxITEM_CHECK, _("Start/Stop Time"), wxEmptyString);
+    ToolBarItem5 = ToolBar1->AddTool(tbrDebug, _("Debug"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\bug_delete.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Debugging Window"), wxEmptyString);
     ToolBar1->Realize();
     SetToolBar(ToolBar1);
     FileDialogOpen = new wxFileDialog(this, _("Open"), wxEmptyString, wxEmptyString, _("Graphscript Files (*.grs)|*.grs|All Files (*.*)|*.*"), wxFD_DEFAULT_STYLE|wxFD_FILE_MUST_EXIST, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
@@ -460,6 +462,7 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     Connect(tbrSave,wxEVT_COMMAND_TOOL_RCLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::OnFileSaveAs);
     Connect(tbrTime,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::OnbtnStartStopTimeClick);
     Connect(tbrTime,wxEVT_COMMAND_TOOL_RCLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::OnbtnResetTimeClick);
+    Connect(tbrDebug,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::OnDebugClicked);
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&proceduralgrapherDialog::OnClose);
     //*)
     wxAcceleratorEntry entries[7];
@@ -526,6 +529,8 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     interpret();
     filename = "Untitled";
     filehaschanged = false;
+    debugdialog = new DebugDialog(this);
+    debugshown = false;
 }
 
 proceduralgrapherDialog::~proceduralgrapherDialog()
@@ -578,7 +583,6 @@ void proceduralgrapherDialog::interpret()
         interpreter interp(funcs, parserdata);
         interp_ptr = &interp;
         try {
-
             interp.evaluate(program);
         }
         catch (token_type_enum t)
@@ -589,7 +593,10 @@ void proceduralgrapherDialog::interpret()
         {
             (*txtOutput) << e.errstring << "\n" << "Stack level: " << interp.stacklevel << "\n";
         }
+        if (debugshown)
+            debugdialog->updatevars(&interp);
     }
+
 
     donedrawing = true;
     endgl();
@@ -1067,4 +1074,11 @@ void proceduralgrapherDialog::OnClose(wxCloseEvent& event)
     }
     else
         this->Destroy();
+}
+
+void proceduralgrapherDialog::OnDebugClicked(wxCommandEvent& event)
+{
+    //if (!debugshown)
+        debugdialog->Show(true);
+        debugshown = true;
 }
