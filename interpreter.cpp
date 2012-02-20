@@ -1236,7 +1236,11 @@ void interpreter::evaluate(implicitplot* relation)
         double stepx = (data.right - data.left) / (ncells - 1);
         double stepy = (data.top - data.bottom) / (ncells - 1);
         double x, y;
-
+        tagged_value xtemp, ytemp, rtemp, thetatemp;
+        xtemp = vars["x"];
+        ytemp = vars["y"];
+        rtemp = vars["r"];
+        thetatemp = vars["theta"];
         vars["x"].type = val_number;
         vars["y"].type = val_number;
         x = floor(data.left/stepx) * stepx;
@@ -1449,6 +1453,10 @@ void interpreter::evaluate(implicitplot* relation)
         for (int i = 0; i <= ncells; i++)
             delete grid[i];
         delete grid;
+        vars["x"] = xtemp;
+        vars["y"] = ytemp;
+        vars["r"] = rtemp;
+        vars["theta"] = thetatemp;
     }
     else
     {
@@ -1761,7 +1769,7 @@ void interpreter::evaluate(parametricplot* parp)
             lasty = y;
         }
     }
-    else
+    else if (!parp->ismulti)
     {
         glDisable(GL_LIGHTING);
         glBegin(GL_LINES);
@@ -1792,6 +1800,119 @@ void interpreter::evaluate(parametricplot* parp)
         }
         glEnd();
         glEnable(GL_LIGHTING);
+    }
+    else
+    {
+        double ufrom, uto, ustep;
+        if (parp->extraparams->givenfrom)
+        {
+            if (evaluate(parp->extraparams->from).type != val_number)
+                throw(error("Error: cannot have non-numeric interval bound"));
+            ufrom = evaluate(parp->extraparams->from).val.n;
+        }
+        else
+            ufrom = -1;
+
+        if (parp->extraparams->givento)
+        {
+            if (evaluate(parp->extraparams->to).type != val_number)
+                throw(error("Error: cannot have non-numeric interval bound"));
+            uto = evaluate(parp->extraparams->to).val.n;
+        }
+        else
+            uto = 1;
+
+        if (parp->extraparams->givenstep)
+        {
+            if (evaluate(parp->extraparams->step).type != val_number)
+                throw(error("Error: cannot have non-numeric step size"));
+            ustep = max(evaluate(parp->extraparams->step).val.n, (to - from) / data.detail / 100);
+        }
+        else
+            ustep = (to - from) / data.detail * 2;
+
+        double u = ufrom;
+
+        int ncellst = ceil((to - from) / step);
+        int ncellsu = ceil((uto - ufrom) / ustep);
+
+        std::cout << ncellsu << "\n";
+        vert3f** grid = new vert3f*[ncellst + 3];        // mapping polar coord (theta, phi) to cartesian (x, y, z) - makes normal calcs + rendering easier.
+        for (int i = 0; i < ncellst + 3; i++)
+            grid[i] = new vert3f[ncellsu + 3];           //    "fencing" vertex (+1) and 1 step padding on each side for normal calculation (+2).
+
+        vars["t"].type = val_number;
+        vars["u"].type = val_number;
+
+        for(int i = 0; i < nassignments; i++)
+            if (evaluate(parp->assignments[i]->rvalue).type != val_number)
+                throw(error("Error: attempt to plot non-numeric espression"));
+
+        for (int i = 0; i < ncellst + 3; i++)
+        {
+            vars["t"].val.n = t;
+            u = ufrom;
+            for(int j = 0; j < ncellsu + 3; j++)
+            {
+                vars["u"].val.n = u;
+                for(int k = 0; k < nassignments; k++)
+                    vars[parp->assignments[k]->lvalue.str] = evaluate(parp->assignments[k]->rvalue);
+                grid[i][j] = vert3f(vars["x"].val.n, vars["y"].val.n, vars["z"].val.n);
+                u += ustep;
+            }
+            t += step;
+        }
+        vert3f** normals = new vert3f*[ncellst + 1];
+        for(int i = 0; i < ncellst + 1; i++)
+            normals[i] = new vert3f[ncellsu + 1];
+
+        vert3f tana, tanb;
+        for(int i = 0; i <= ncellst; i++)
+            for(int j = 0; j <= ncellsu; j++)
+            {
+                tana = grid[i+2][j+1] - grid[i][j+1]; //tangent vector in line with theta polar rotation
+                tanb = grid[i+1][j+2] - grid[i+1][j]; //tangent vector in line with phi polar rotation
+                normals[i][j] = vert3f(
+                                       tana.y * tanb.z - tana.z * tanb.y,
+                                       tana.z * tanb.x - tana.x * tanb.z,
+                                       tana.x * tanb.y - tana.y * tanb.x
+                                      );                                            //cross product of the two tangent vectors
+            }
+
+        int lasti = 0;
+        int lastj;
+
+        vert3f currentvert;
+        for (int i = 1; i <= ncellst; i++)
+        {
+            lastj = 0;
+            for(int j = 1; j <= ncellsu; j++)
+            {
+
+                glBegin(GL_POLYGON);
+                glNormal3f(normals[lasti][lastj].x, normals[lasti][lastj].y, normals[lasti][lastj].z);
+                currentvert = grid[lasti + 1][lastj + 1];                          // +1 because of padding on left and bottom of grid (for normal calcs)
+                glVertex3f(currentvert.x, currentvert.y, currentvert.z);
+                glNormal3f(normals[i][lastj].x, normals[i][lastj].y, normals[i][lastj].z);
+                currentvert = grid[i + 1][lastj + 1];
+                glVertex3f(currentvert.x, currentvert.y, currentvert.z);
+                glNormal3f(normals[i][j].x, normals[i][j].y, normals[i][j].z);
+                currentvert = grid[i + 1][j + 1];
+                glVertex3f(currentvert.x, currentvert.y, currentvert.z);
+                glNormal3f(normals[lasti][j].x, normals[lasti][j].y, normals[lasti][j].z);
+                currentvert = grid[lasti + 1][j + 1];
+                glVertex3f(currentvert.x, currentvert.y, currentvert.z);
+                glEnd();
+                lastj = j;
+            }
+            lasti = i;
+        }
+        for (int i = 0; i < ncellst + 3; i++)
+            delete grid[i];
+        delete grid;
+        for (int i = 0; i < ncellst + 1; i++)
+            delete normals[i];
+        delete normals;
     }
     getnextcolor();
 }

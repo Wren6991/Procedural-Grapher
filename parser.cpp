@@ -642,6 +642,7 @@ statement* parser::stat()
         expect(t_id);
         s->type = t_par;
         parametricplot *p = new parametricplot;
+        p->ismulti = false;
         p->givenfrom = false;
         p->givento = false;
         p->givenstep = false;
@@ -662,6 +663,36 @@ statement* parser::stat()
         {
             p->step = expr();
             p->givenstep = true;
+        }
+
+        if (accept(t_comma))
+        {
+            expect(t_id);
+            parametricplot *q = new parametricplot;
+            q->ismulti = false;
+            q->givenfrom = false;
+            q->givento = false;
+            q->givenstep = false;
+            q->parname = last.value;
+            if (accept(t_from))
+            {
+                q->givenfrom = true;
+                q->from = expr();
+            }
+
+            if (accept(t_to))
+            {
+                q->to = expr();
+                q->givento = true;
+            }
+
+            if (accept(t_step))
+            {
+                q->step = expr();
+                q->givenstep = true;
+            }
+            p->extraparams = q;
+            p->ismulti = true;
         }
 
         while (accept(t_id))
@@ -838,6 +869,9 @@ parametricplot::~parametricplot()
     {
         delete assignments[i];
     }
+
+    if (ismulti)
+        delete extraparams;
 }
 
 expression::~expression()

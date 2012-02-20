@@ -689,10 +689,11 @@ void proceduralgrapherDialog::init3d()
     GLfloat mat_shininess[] = { 50.0 };
     GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };
 
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
     glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
     glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+
 
     glEnable(GL_NORMALIZE);
 

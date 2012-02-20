@@ -225,6 +225,8 @@ class parametricplot
     expression* to;
     bool givenstep;
     expression* step;
+    bool ismulti;
+    parametricplot* extraparams;         //list of extras is unnecessary for now, as more than two params would necessitate drawing in at least four dimensions; I'll cross that bridge when I come to it.
     std::vector <assignment*> assignments;
     ~parametricplot();
 };
