@@ -1,0 +1,66 @@
+let ballx = getpersistent("ballx")
+let bally = getpersistent("bally")
+let paddley = getpersistent("paddley")
+let xvel = getpersistent("xvel")
+if xvel = 0 then let xvel = 5 * sqrt(2) end
+let yvel = getpersistent("yvel")
+if yvel = 0 then let yvel = 5 * sqrt(2) end
+
+
+def draw()
+  x < -11 and x > -13 and y < mousey + 2.5 and y > mousey - 2.5
+  plot (x - ballx)^2 + (y - bally)^2 < 1
+  x < 13 and x > 11 and y < paddley + 2.5 and y > paddley - 2.5
+  if died then
+    plot 0.5
+  end
+end
+
+
+let ballx = ballx + xvel * dt
+let bally = bally + yvel * dt
+
+if ballx > 10 then
+  let ballx = 10
+  let xvel = -xvel
+  let yvel = yvel + rand() * 5
+end
+
+if ballx < -10 and abs(bally - mousey) <= 2.5 then
+  let ballx = -10
+  let xvel = -xvel
+  let yvel = yvel + rand() * 5
+end
+
+if ballx < -12 then
+  let ballx = 0
+  let bally = 0
+  let xvel = -xvel
+  setpersistent("score", getpersistent("score") - 1)
+  let died = 1
+end
+
+if bally > 7 then
+  let bally = 7
+  let yvel = -yvel
+end
+
+if bally < -7 then
+  let bally = -7
+  let yvel = -yvel
+end
+
+let paddley = paddley * 0.8 + bally * 0.2
+
+let speed = sqrt(xvel^2 + yvel^2)
+let xvel = xvel / speed * 10
+let yvel = yvel / speed * 10
+draw()
+
+setpersistent("ballx", ballx)
+setpersistent("bally", bally)
+setpersistent("xvel", xvel)
+setpersistent("yvel", yvel)
+setpersistent("paddley", paddley)
+
+print("Score: ", getpersistent("score"))

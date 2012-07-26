@@ -1,0 +1,3 @@
+let f(str) = {{str}}
+
+print(f("apple")[0][0])

@@ -101,7 +101,7 @@ std::string type_names[] = {
     "array"
     };
 
-double lnbodge(double x)
+double lnbodge(double x)            //identical for positive x; differentiates correctly for -x (where it is usually undefined)
 {
     if (x > 0)
         return log(x);
@@ -281,7 +281,7 @@ tagged_value rand_tv(arglist_member* arg)
 
 tagged_value prng_tv(arglist_member *arg)
 {
-    srand(123456789);
+    /*srand(123456789);
     while (arg != NULL)
     {
         srand(arg->v.val.n * 10267 * (arg->v.val.n + 3571) + rand() * (arg->v.val.n - 7057));
@@ -289,7 +289,15 @@ tagged_value prng_tv(arglist_member *arg)
         arg = arg->next;
 
     }
-    return tagged_value(rand() / (float)RAND_MAX);
+    return tagged_value(rand() / (float)RAND_MAX);*/
+    double x = arg->v.val.n;
+    double y = arg->next->v.val.n;
+    double seed = 17 + 13 * (pow(5, x) - pow(7, 1 - x) + (pow(11, y) - pow(19, 2 - y)) / 2.0);
+    seed = seed - (long)(seed / 5011) * 5011;
+    srand(seed);
+    rand();
+    rand();
+    return tagged_value(rand() / static_cast <double> (RAND_MAX));
 }
 
 tagged_value getpersistent(arglist_member *arg)
@@ -381,7 +389,7 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     //(*Initialize(proceduralgrapherDialog)
     wxBoxSizer* BoxSizer4;
     wxBoxSizer* BoxSizer2;
-
+    
     Create(parent, wxID_ANY, _("Procedural Grapher - Untitled"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetClientSize(wxSize(-1,-1));
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
@@ -439,7 +447,7 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     FileDialogOpen = new wxFileDialog(this, _("Open"), wxEmptyString, wxEmptyString, _("Graphscript Files (*.grs)|*.grs|All Files (*.*)|*.*"), wxFD_DEFAULT_STYLE|wxFD_FILE_MUST_EXIST, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
     FileDialogSaveAs = new wxFileDialog(this, _("Save As"), wxEmptyString, wxEmptyString, _("Graphscript Files (*.grs)|*.grs|All Files (*.*)|*.*"), wxFD_SAVE|wxFD_OVERWRITE_PROMPT, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
     BoxSizer1->SetSizeHints(this);
-
+    
     Connect(ID_TXTEXPR,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&proceduralgrapherDialog::Tokenize);
     Connect(ID_TXTOUTPUT,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&proceduralgrapherDialog::OntxtOutputText);
     Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::Onchk3DClick);

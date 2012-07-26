@@ -1,0 +1,15 @@
+def f(x) return x + sin(time * 3) * sin(x) end
+def g(x) return (x + sin(time * 2)/3)^3/3 - x end
+
+y = f(x)
+y = g(x)
+
+let a = mousex
+for i = 1 to 10 do
+  let a = a - (f(a) - g(a)) / d/da (f(a) - g(a))
+  #x = a
+end
+
+x = a
+
+print(time)

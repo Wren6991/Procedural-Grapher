@@ -1,0 +1,2 @@
+
+r = theta * phi + sin(time*2)

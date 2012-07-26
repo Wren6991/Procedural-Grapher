@@ -1,0 +1,23 @@
+y = sin(x) + sin(z) + sin(x * sin(time))
+
+x^2 + y^2 + z^2 = 5^2 - 5*sin(x + sin(time)) + cos(time) * z
+
+
+
+Newton-Raphson:
+
+let f(x) = sin(x) + sin(x * sin(time)) + x
+
+let g(x) =  x^3/5 - x + cos(x + time)
+
+y = f(x)
+y = g(x)
+
+let a = mousex
+for i = 1 to 10 do
+  let a = a - (f(a) - g(a)) / d/da (f(a) - g(a))
+end
+
+x = a
+
+print("intersection: (", a, ", ", f(a), ")")

@@ -1,0 +1,5 @@
+par t, u from
+x = t
+y = u
+z = t * u
+end

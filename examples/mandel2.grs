@@ -1,0 +1,15 @@
+def mandelbrot(ca, cb)
+  let za = ca
+  let zb = cb
+  for i = 1 to 30 do
+    let zatemp = za
+    let za = za*za - zb*zb + ca
+    let zb = 2*zatemp*zb + cb
+    if za*za + zb*zb > 4 then
+      return i / 30
+    end
+  end
+  return 1
+end
+
+plot mandelbrot(x, y)

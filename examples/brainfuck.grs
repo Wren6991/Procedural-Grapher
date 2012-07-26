@@ -1,0 +1,82 @@
+let prog = ",[.>,]++++[<++++++++>-].<[.<]"
+let input = "hello"
+let inputindex = -1
+
+def getinput()
+  let inputindex = inputindex + 1
+  if inputindex < size(input) then
+    return input[inputindex]
+  else
+    return 0
+  end
+end
+let stack = {}
+let stackindex = -1
+def push(n)
+  let stackindex = stackindex + 1
+  let stack[stackindex] = n
+end
+
+def pop()
+  let stackindex = stackindex - 1
+  return stack[stackindex + 1]
+end
+
+let mem = {}
+for i = 0 to 29999 do let mem[i] = 0 end
+let ptr = 0
+let progindex = 0
+while progindex < size(prog) do
+  let c = prog[progindex]
+  #print(c)
+  if c =  ","[0] then
+    let mem[ptr] = getinput()
+  elseif c = "."[0] then
+    print(char(mem[ptr]))
+  elseif c = "+"[0] then
+    let mem[ptr] = mem[ptr] + 1
+    if mem[ptr] > 255 then
+       let mem[ptr] = 0
+    end
+  elseif c = "-"[0] then
+    let mem[ptr] = mem[ptr] - 1
+    if mem[ptr] < 0 then
+       let mem[ptr] = 255
+    end
+  elseif c = "<"[0] then
+    let ptr = ptr - 1
+    if ptr < 0 then
+      let ptr = 29999
+    end
+  elseif c = ">"[0] then
+    let ptr = ptr + 1
+    if ptr >= 30000 then
+      let ptr = 0
+    end
+  elseif c = "["[0] then
+    if mem[ptr] = 0 then
+      let level = 1
+      while level > 0 and progindex < size(prog) do
+	let progindex = progindex + 1
+        let c = prog[progindex]
+        if c = "["[0] then
+          let level = level + 1
+        elseif c = "]"[0] then
+          let level = level - 1
+        end
+      end
+    else
+      push(progindex)
+    end
+  elseif c = "]"[0] then
+    if mem[ptr] = 0 then
+      pop()
+    else
+      let progindex = stack[stackindex]
+    end
+  end
+  let progindex = progindex + 1
+end
+
+y = mem[x*10]/255
+x = ptr/10

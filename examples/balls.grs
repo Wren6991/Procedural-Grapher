@@ -1,0 +1,18 @@
+def drawball(self)
+  print(self)
+  plot (x - self.x)^2 + (y - self.y)^2 + z^2 <= 1
+end
+
+def newball(x, y)
+  let ball = {}
+  let ball.x = x
+  let ball.y = y
+  let ball.draw = drawball
+  return ball
+end
+
+let ball1 = newball(0, 0)
+let ball2 = newball(2, 1.25-5*(time - floor(time) - 1/2)^2)
+
+ball1:draw()
+ball2:draw()

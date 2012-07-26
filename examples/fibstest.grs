@@ -1,0 +1,10 @@
+def fibs(n)
+  let a, b = 1, 1
+  for i = 1 to n do
+    let a, b = b, a + b
+  end
+  return a
+end
+
+print(fibs(1000000))
+print(dt)

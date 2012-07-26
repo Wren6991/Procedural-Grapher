@@ -1,0 +1,12 @@
+y = e^x
+y = e^-x
+y = (e^x + e^-x) / 2
+
+
+par t from -10 to 10
+  x = (e^t + e^-t) / 2
+  y = (e^t - e^-t) / 2
+end
+
+x^2 - y^2 < 1 and x < 0
+

@@ -1,0 +1,7 @@
+for R = 1 to 3 do
+  par t from -pi to pi, u from 0 to 2*pi
+    x = cos(t) * (R*2 + cos(u))
+    y = sin(t) * (R*2 + cos(u))
+    z = sin(u)
+  end
+end

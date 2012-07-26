@@ -1,0 +1,37 @@
+let lerp(a, b, t) = a * (1 - t) + b * t
+let frac(x) = x - floor(x)
+
+let smoothnoise(x, z) = lerp(
+    lerp(prng(floor(x), floor(z)), prng(floor(x + 1), floor(z)), frac(x)),
+    lerp(prng(floor(x), floor(z + 1)), prng(floor(x + 1), floor(z + 1)), frac(x)),
+    frac(z)
+)
+
+def fbm(x, z, freq, amp, octaves)
+  if octaves > 0 then
+    return smoothnoise(x, z) + amp * fbm(x*freq, z*freq, freq, amp, octaves - 1)
+  else
+    return 0
+  end
+end
+
+y = fbm(x, z, 2, 0.5, 3)
+
+
+let lerp(a, b, t) = a * (1 - t) + b * t
+
+let smoothnoise(x, z) = lerp(
+    lerp(prng(floor(x), floor(z)), prng(floor(x + 1), floor(z)), x - floor(x)),
+    lerp(prng(floor(x), floor(z + 1)), prng(floor(x + 1), floor(z + 1)), x - floor(x)),
+    z - floor(z)
+)
+
+def fbm(x, z, freq, amp, octaves)
+  if octaves > 0 then
+    return smoothnoise(x, z) + amp * fbm(x*freq, z*freq, freq, amp, octaves - 1)
+  else
+    return 0
+  end
+end
+
+y = fbm(x, z, 2, 0.5, 3)

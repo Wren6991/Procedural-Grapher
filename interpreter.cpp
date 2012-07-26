@@ -796,15 +796,17 @@ tagged_value interpreter::evaluate(value *v)
             //std::cout << "Created array " << rv.val.arr << ", size " << v->arrinit->explist.size() << "\n";
             break;
         case t_dif:
-            rv = evaluate(v->b);
-            if (rv.type != val_number)
-                throw(error("Error: attempt to differentiate non-numeric expression"));
-            temp = vars[v->var];
-            if (temp.type != val_number)
-                throw(error("Error: attempt to differentiate with respect to non-numeric variable"));
-            vars[v->var].val.n += 0.00001;
-            rv.val.n = (evaluate(v->b).val.n - rv.val.n) / 0.00001;
-            vars[v->var].val.n = temp.val.n;
+            {
+                rv = evaluate(v->b);
+                if (rv.type != val_number)
+                    throw(error("Error: attempt to differentiate non-numeric expression"));
+                double tempval = vars[v->var].val.n;
+                if (temp.type != val_number)
+                    throw(error("Error: attempt to differentiate with respect to non-numeric variable"));
+                vars[v->var].val.n += 0.00001;
+                rv.val.n = (evaluate(v->b).val.n - rv.val.n) / 0.00001;
+                vars[v->var].val.n = tempval;
+            }
             break;
         case t_string:
             rv.type = val_string;
