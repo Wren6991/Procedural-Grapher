@@ -389,7 +389,7 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     //(*Initialize(proceduralgrapherDialog)
     wxBoxSizer* BoxSizer4;
     wxBoxSizer* BoxSizer2;
-    
+
     Create(parent, wxID_ANY, _("Procedural Grapher - Untitled"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetClientSize(wxSize(-1,-1));
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
@@ -437,17 +437,17 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     Timer1.SetOwner(this, ID_TIMER1);
     Timer1.Start(25, false);
     ToolBar1 = new wxToolBar(this, ID_TOOLBAR1, wxDefaultPosition, wxDefaultSize, wxRAISED_BORDER|wxSTATIC_BORDER, _T("ID_TOOLBAR1"));
-    ToolBarItem1 = ToolBar1->AddTool(tbrNew, _("New"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\page_add.ico"))), wxNullBitmap, wxITEM_NORMAL, _("New File"), wxEmptyString);
-    ToolBarItem2 = ToolBar1->AddTool(tbrOpen, _("Open"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\folder_page.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Open File"), wxEmptyString);
-    ToolBarItem3 = ToolBar1->AddTool(tbrSave, _("Save\\tCtrl-Shift-S"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\disk.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Save File (Right Click: Save As)"), wxEmptyString);
-    ToolBarItem4 = ToolBar1->AddTool(tbrTime, _("Time"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\hourglass.ico"))), wxNullBitmap, wxITEM_CHECK, _("Start/Stop Time"), wxEmptyString);
-    ToolBarItem5 = ToolBar1->AddTool(tbrDebug, _("Debug"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\bug_delete.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Debugging Window"), wxEmptyString);
+    ToolBarItem1 = ToolBar1->AddTool(tbrNew, _("New"), wxBitmap(wxImage(_T("resources/page_add.ico"))), wxNullBitmap, wxITEM_NORMAL, _("New File"), wxEmptyString);
+    ToolBarItem2 = ToolBar1->AddTool(tbrOpen, _("Open"), wxBitmap(wxImage(_T("resources/folder_page.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Open File"), wxEmptyString);
+    ToolBarItem3 = ToolBar1->AddTool(tbrSave, _("Save\\tCtrl-Shift-S"), wxBitmap(wxImage(_T("resources/disk.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Save File (Right Click: Save As)"), wxEmptyString);
+    ToolBarItem4 = ToolBar1->AddTool(tbrTime, _("Time"), wxBitmap(wxImage(_T("resources/hourglass.ico"))), wxNullBitmap, wxITEM_CHECK, _("Start/Stop Time"), wxEmptyString);
+    ToolBarItem5 = ToolBar1->AddTool(tbrDebug, _("Debug"), wxBitmap(wxImage(_T("resources/bug_delete.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Debugging Window"), wxEmptyString);
     ToolBar1->Realize();
     SetToolBar(ToolBar1);
     FileDialogOpen = new wxFileDialog(this, _("Open"), wxEmptyString, wxEmptyString, _("Graphscript Files (*.grs)|*.grs|All Files (*.*)|*.*"), wxFD_DEFAULT_STYLE|wxFD_FILE_MUST_EXIST, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
     FileDialogSaveAs = new wxFileDialog(this, _("Save As"), wxEmptyString, wxEmptyString, _("Graphscript Files (*.grs)|*.grs|All Files (*.*)|*.*"), wxFD_SAVE|wxFD_OVERWRITE_PROMPT, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
     BoxSizer1->SetSizeHints(this);
-    
+
     Connect(ID_TXTEXPR,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&proceduralgrapherDialog::Tokenize);
     Connect(ID_TXTOUTPUT,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&proceduralgrapherDialog::OntxtOutputText);
     Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::Onchk3DClick);
