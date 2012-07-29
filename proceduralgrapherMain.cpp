@@ -22,9 +22,11 @@
 #include "tokenizer.h"
 #include "parser.h"
 #include "interpreter.h"
+#include <fstream>
 #include <iostream>
 #include <stdlib.h>
 #include <wx/glcanvas.h>
+#include <GL/glext.h>       //for texture parameters etc.
 
 #include "draw.h"
 
@@ -484,6 +486,28 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     wxAcceleratorTable accel(7, entries);
     this->SetAcceleratorTable(accel);
     GLContext1 = new wxGLContext(GLCanvas1);
+    GLContext1->SetCurrent(*GLCanvas1);
+    std::fstream fontfile("resources/font.tga", std::ios::in | std::ios::binary);
+    if (fontfile.is_open())
+        std::cout << "Font file is open\n";
+    else
+        std::cout << "Could not open font file\n";
+    fontfile.seekg(0,  std::ios::end);
+    int fontlength = fontfile.tellg();
+    fontfile.seekg(0,  std::ios::beg);
+    char *fontbuffer = new char[fontlength];
+    fontfile.read(fontbuffer, fontlength);
+    for (int i = 0; i < fontlength; i++)
+        fontbuffer[i] = i & 0xff;
+    fontfile.close();
+    std::cout << "Font file size: " << fontlength << "\n";
+    glGenTextures(1, &fontTexture);
+    glBindTexture(fontTexture, GL_TEXTURE_2D);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 8, 1024, 0, GL_RGBA, GL_UNSIGNED_BYTE, fontbuffer + 18);
     OutputBox = txtOutput;
     donedrawing = true;
     parserdata.left = -1;
@@ -560,6 +584,38 @@ double dddprint(double x)
     return x;
 }
 
+void texturedQuad(float left, float right, float bottom, float top, float tleft = 0.f, float tright = 1.f, float tbottom = 0.f, float ttop = 1.f)
+{
+    glBegin(GL_TRIANGLES);
+    glTexCoord2f(tleft, tbottom);
+    glVertex3f(left, bottom, -1.f);
+    glTexCoord2f(tleft, ttop);
+    glVertex3f(left, top, -1.f);
+    glTexCoord2f(tright, ttop);
+    glVertex3f(right, top, -1.f);
+    glTexCoord2f(tleft, tbottom);
+    glVertex3f(left, bottom, -1.f);
+    glTexCoord2f(tright, ttop);
+    glVertex3f(right, top, -1.f);
+    glTexCoord2f(tright, tbottom);
+    glVertex3f(right, bottom, -1.f);
+    glEnd();
+}
+
+void renderChar(int x, int y, char c)
+{
+    texturedQuad(x, x + 8, y, y + 8, 0.f, 1.f, 1.f - c / 128.f, 1.f - (c + 1) / 128.f);
+}
+
+void proceduralgrapherDialog::print(int x, int y, std::string str)
+{
+    glBindTexture(GL_TEXTURE_2D, fontTexture);
+    for (unsigned int i = 0; i < str.size(); i++)
+    {
+        renderChar(x + i * 8, y, str[i]);
+    }
+}
+
 void proceduralgrapherDialog::parse()
 {
     txtOutput->SetValue("");
@@ -578,6 +634,7 @@ void proceduralgrapherDialog::parse()
     parserror = txtOutput->GetValue();
     std::cout << parserror;
 }
+
 void proceduralgrapherDialog::interpret()
 {
     txtOutput->SetValue(parserror);
@@ -605,7 +662,21 @@ void proceduralgrapherDialog::interpret()
             debugdialog->updatevars(&interp);
     }
 
-
+    if (!parserdata.is3d)
+    {
+        for (std::vector<double>::iterator iter = gridPointsX.begin(); iter != gridPointsX.end(); iter++)
+        {
+            std::cout << "x: " << *iter << "\n";
+        }
+        for (std::vector<double>::iterator iter = gridPointsY.begin(); iter != gridPointsY.end(); iter++)
+        {
+            std::cout << "y: " << *iter << "\n";
+        }
+        glColor3f(1.f, 1.f, 10.f);
+        glBindTexture(GL_TEXTURE_2D, fontTexture);
+        texturedQuad(0, 1, 0, 1);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
     donedrawing = true;
     endgl();
     (*OutputBox) << parserdata.left << ", " << parserdata.bottom << ", " << parserdata.back << "\n" << parserdata.right << ", " << parserdata.top << ", " << parserdata.front << "\nComplete.";
@@ -629,13 +700,6 @@ void proceduralgrapherDialog::OncanvasPaint(wxPaintEvent& event)
 
 }
 
-
-void proceduralgrapherDialog::print(std::string str)
-{
-    (*txtOutput) << str;
-}
-
-
 void proceduralgrapherDialog::init2d()
 {
     GLContext1->SetCurrent(*GLCanvas1);
@@ -648,8 +712,11 @@ void proceduralgrapherDialog::init2d()
     glLoadIdentity();
     glFrustum(parserdata.left, parserdata.right, parserdata.bottom, parserdata.top, 1, 1000);
 
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
 
     glEnable(GL_LINE_SMOOTH);
     glHint(GL_LINE_SMOOTH, GL_NICEST);
@@ -660,13 +727,22 @@ void proceduralgrapherDialog::init2d()
     glColor3f(0.5, 0.5, 0.5);
     if(chkGrid->GetValue())
     {
+        gridPointsX = std::vector <double>();
+        gridPointsY = std::vector <double>();
         double stepx = pow(2, floor(log((parserdata.right - parserdata.left) * 300.00001 / (double)lastcanvaswidth) / log(2))) / 4.0;
         for(double x = floor(parserdata.left/ stepx) * stepx; x < parserdata.right; x+= stepx)
+        {
             line2(x, parserdata.top, x, parserdata.bottom);
+            gridPointsX.push_back(x);
+        }
+
 
         double stepy = pow(2, floor(log((parserdata.top - parserdata.bottom) * 300.00001 / (double)lastcanvasheight) / log(2))) / 4.0;
         for(double y = floor(parserdata.bottom / stepy) * stepy; y < parserdata.top; y += stepy)
+        {
             line2(parserdata.left, y, parserdata.right, y);
+            gridPointsY.push_back(y);
+        }
         glColor3f(1, 0, 0);
     }
     parserdata.mousex = parserdata.left + mousex / (lastcanvaswidth / (parserdata.right - parserdata.left));

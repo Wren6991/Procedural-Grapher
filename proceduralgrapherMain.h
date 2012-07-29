@@ -24,9 +24,9 @@
 #include <wx/frame.h>
 #include <wx/timer.h>
 //*)
-#include "parser.h"
-#include <vector>
 #include <map>
+#include <vector>
+#include "parser.h"
 #include "DebugDialog.h"
 
 class proceduralgrapherDialog: public wxFrame
@@ -38,7 +38,7 @@ class proceduralgrapherDialog: public wxFrame
         void init2d();
         void init3d();
         void endgl();
-        void print(std::string str);
+        void print(int x, int y, std::string str);
         void loadfile(std::string);
         bool debugshown;
         wxTextCtrl* getOutput()
@@ -126,6 +126,9 @@ class proceduralgrapherDialog: public wxFrame
         wxCheckBox* chk3D;
         wxFileDialog* FileDialogSaveAs;
         //*)
+        GLuint fontTexture;
+        std::vector <double> gridPointsX;
+        std::vector <double> gridPointsY;
         std::vector <token> tokens;
         parser p;
         std::map <std::string, dfuncd> funcs;
