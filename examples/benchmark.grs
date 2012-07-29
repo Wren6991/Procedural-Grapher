@@ -4,7 +4,7 @@ x^2 + y^2 + z^2 = 5^2 - 5*sin(x + sin(time)) + cos(time) * z
 
 
 
-Newton-Raphson:
+# Newton-Raphson:
 
 let f(x) = sin(x) + sin(x * sin(time)) + x
 

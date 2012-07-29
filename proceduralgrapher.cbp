@@ -70,6 +70,7 @@
 		<Unit filename="draw.h" />
 		<Unit filename="interpreter.cpp" />
 		<Unit filename="interpreter.h" />
+		<Unit filename="msdata.h" />
 		<Unit filename="parser.cpp" />
 		<Unit filename="parser.h" />
 		<Unit filename="proceduralgrapherApp.cpp" />

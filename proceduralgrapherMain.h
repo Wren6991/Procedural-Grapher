@@ -13,11 +13,13 @@
 //(*Headers(proceduralgrapherDialog)
 #include <wx/notebook.h>
 #include <wx/sizer.h>
+#include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
 #include <wx/glcanvas.h>
 #include <wx/toolbar.h>
 #include <wx/stopwatch.h>
+#include <wx/slider.h>
 #include <wx/panel.h>
 #include <wx/filedlg.h>
 #include <wx/button.h>
@@ -77,6 +79,11 @@ class proceduralgrapherDialog: public wxFrame
         void OnFileNew(wxCommandEvent& event);
         void OnClose(wxCloseEvent& event);
         void OnDebugClicked(wxCommandEvent& event);
+        void OnSlider1CmdScroll(wxScrollEvent& event);
+        void OnPanel1Paint1(wxPaintEvent& event);
+        void OnDetailSliderCmdScroll(wxScrollEvent& event);
+        void OnPanel1Paint2(wxPaintEvent& event);
+        void OnDetailSliderCmdScrollThumbTrack(wxScrollEvent& event);
         //*)
         void parse();
         void interpret();
@@ -86,12 +93,14 @@ class proceduralgrapherDialog: public wxFrame
         //(*Identifiers(proceduralgrapherDialog)
         static const long ID_TXTEXPR;
         static const long ID_TXTOUTPUT;
-        static const long ID_CHECKBOX1;
-        static const long ID_CHECKBOX2;
-        static const long ID_PANEL1;
         static const long ID_BUTTON1;
         static const long ID_BUTTON2;
         static const long ID_PANEL2;
+        static const long ID_CHECKBOX1;
+        static const long ID_SLIDER1;
+        static const long ID_STATICTEXT1;
+        static const long ID_CHECKBOX2;
+        static const long ID_PANEL1;
         static const long ID_NOTEBOOK1;
         static const long ID_GLCANVAS1;
         static const long ID_TIMER1;
@@ -114,8 +123,10 @@ class proceduralgrapherDialog: public wxFrame
         wxGLCanvas* GLCanvas1;
         wxButton* btnResetTime;
         wxPanel* Panel1;
+        wxStaticText* StaticText1;
         wxTextCtrl* txtExpr;
         wxToolBarToolBase* ToolBarItem1;
+        wxSlider* DetailSlider;
         wxStopWatch StopWatch1;
         wxToolBarToolBase* ToolBarItem5;
         wxBoxSizer* BoxSizer1;

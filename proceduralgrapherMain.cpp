@@ -32,6 +32,7 @@ wxTextCtrl *OutputBox;
 interpreter* interp_ptr;
 
 g_data parserdata;
+int setdetail = 100;
 std::map <std::string, tagged_value> persistent_vars;
 
 std::string token_type_names[] = {
@@ -361,12 +362,14 @@ wxString wxbuildinfo(wxbuildinfoformat format)
 //(*IdInit(proceduralgrapherDialog)
 const long proceduralgrapherDialog::ID_TXTEXPR = wxNewId();
 const long proceduralgrapherDialog::ID_TXTOUTPUT = wxNewId();
-const long proceduralgrapherDialog::ID_CHECKBOX1 = wxNewId();
-const long proceduralgrapherDialog::ID_CHECKBOX2 = wxNewId();
-const long proceduralgrapherDialog::ID_PANEL1 = wxNewId();
 const long proceduralgrapherDialog::ID_BUTTON1 = wxNewId();
 const long proceduralgrapherDialog::ID_BUTTON2 = wxNewId();
 const long proceduralgrapherDialog::ID_PANEL2 = wxNewId();
+const long proceduralgrapherDialog::ID_CHECKBOX1 = wxNewId();
+const long proceduralgrapherDialog::ID_SLIDER1 = wxNewId();
+const long proceduralgrapherDialog::ID_STATICTEXT1 = wxNewId();
+const long proceduralgrapherDialog::ID_CHECKBOX2 = wxNewId();
+const long proceduralgrapherDialog::ID_PANEL1 = wxNewId();
 const long proceduralgrapherDialog::ID_NOTEBOOK1 = wxNewId();
 const long proceduralgrapherDialog::ID_GLCANVAS1 = wxNewId();
 const long proceduralgrapherDialog::ID_TIMER1 = wxNewId();
@@ -389,6 +392,8 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     //(*Initialize(proceduralgrapherDialog)
     wxBoxSizer* BoxSizer4;
     wxBoxSizer* BoxSizer2;
+    wxGridSizer* GridSizer1;
+    wxBoxSizer* BoxSizer3;
 
     Create(parent, wxID_ANY, _("Procedural Grapher - Untitled"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetClientSize(wxSize(-1,-1));
@@ -404,11 +409,6 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     txtOutput->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT));
     wxFont txtOutputFont(10,wxSWISS,wxFONTSTYLE_NORMAL,wxNORMAL,false,_T("Consolas"),wxFONTENCODING_DEFAULT);
     txtOutput->SetFont(txtOutputFont);
-    Panel1 = new wxPanel(Notebook1, ID_PANEL1, wxPoint(159,12), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
-    chk3D = new wxCheckBox(Panel1, ID_CHECKBOX1, _("3D"), wxPoint(8,8), wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
-    chk3D->SetValue(false);
-    chkGrid = new wxCheckBox(Panel1, ID_CHECKBOX2, _("Grid"), wxPoint(8,32), wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
-    chkGrid->SetValue(true);
     Panel2 = new wxPanel(Notebook1, ID_PANEL2, wxPoint(162,14), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
     BoxSizer4 = new wxBoxSizer(wxHORIZONTAL);
     btnStartStopTime = new wxButton(Panel2, ID_BUTTON1, _("Start Time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -420,9 +420,28 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     Panel2->SetSizer(BoxSizer4);
     BoxSizer4->Fit(Panel2);
     BoxSizer4->SetSizeHints(Panel2);
+    Panel1 = new wxPanel(Notebook1, ID_PANEL1, wxPoint(159,12), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+    GridSizer1 = new wxGridSizer(0, 2, 0, 0);
+    chk3D = new wxCheckBox(Panel1, ID_CHECKBOX1, _("3D"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+    chk3D->SetValue(false);
+    GridSizer1->Add(chk3D, 0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 10);
+    BoxSizer3 = new wxBoxSizer(wxHORIZONTAL);
+    DetailSlider = new wxSlider(Panel1, ID_SLIDER1, 0, -5, 5, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER1"));
+    DetailSlider->SetTickFreq(1);
+    DetailSlider->SetToolTip(_("Detail, low to high"));
+    BoxSizer3->Add(DetailSlider, 0, wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 0);
+    StaticText1 = new wxStaticText(Panel1, ID_STATICTEXT1, _("Detail"), wxDefaultPosition, wxSize(31,24), 0, _T("ID_STATICTEXT1"));
+    BoxSizer3->Add(StaticText1, 0, wxALIGN_LEFT|wxALIGN_TOP, 0);
+    GridSizer1->Add(BoxSizer3, 1, wxTOP|wxLEFT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 10);
+    chkGrid = new wxCheckBox(Panel1, ID_CHECKBOX2, _("Grid"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+    chkGrid->SetValue(true);
+    GridSizer1->Add(chkGrid, 0, wxLEFT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 10);
+    Panel1->SetSizer(GridSizer1);
+    GridSizer1->Fit(Panel1);
+    GridSizer1->SetSizeHints(Panel1);
     Notebook1->AddPage(txtOutput, _("Output"), false);
-    Notebook1->AddPage(Panel1, _("View"), false);
     Notebook1->AddPage(Panel2, _("Time"), false);
+    Notebook1->AddPage(Panel1, _("View"), false);
     BoxSizer2->Add(Notebook1, 1, wxTOP|wxBOTTOM|wxLEFT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 4);
     BoxSizer1->Add(BoxSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     int GLCanvasAttributes_1[] = {
@@ -437,11 +456,11 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     Timer1.SetOwner(this, ID_TIMER1);
     Timer1.Start(25, false);
     ToolBar1 = new wxToolBar(this, ID_TOOLBAR1, wxDefaultPosition, wxDefaultSize, wxRAISED_BORDER|wxSTATIC_BORDER, _T("ID_TOOLBAR1"));
-    ToolBarItem1 = ToolBar1->AddTool(tbrNew, _("New"), wxBitmap(wxImage(_T("resources/page_add.ico"))), wxNullBitmap, wxITEM_NORMAL, _("New File"), wxEmptyString);
-    ToolBarItem2 = ToolBar1->AddTool(tbrOpen, _("Open"), wxBitmap(wxImage(_T("resources/folder_page.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Open File"), wxEmptyString);
-    ToolBarItem3 = ToolBar1->AddTool(tbrSave, _("Save\\tCtrl-Shift-S"), wxBitmap(wxImage(_T("resources/disk.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Save File (Right Click: Save As)"), wxEmptyString);
-    ToolBarItem4 = ToolBar1->AddTool(tbrTime, _("Time"), wxBitmap(wxImage(_T("resources/hourglass.ico"))), wxNullBitmap, wxITEM_CHECK, _("Start/Stop Time"), wxEmptyString);
-    ToolBarItem5 = ToolBar1->AddTool(tbrDebug, _("Debug"), wxBitmap(wxImage(_T("resources/bug_delete.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Debugging Window"), wxEmptyString);
+    ToolBarItem1 = ToolBar1->AddTool(tbrNew, _("New"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\page_add.ico"))), wxNullBitmap, wxITEM_NORMAL, _("New File"), wxEmptyString);
+    ToolBarItem2 = ToolBar1->AddTool(tbrOpen, _("Open"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\folder_page.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Open File"), wxEmptyString);
+    ToolBarItem3 = ToolBar1->AddTool(tbrSave, _("Save\\tCtrl-Shift-S"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\disk.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Save File (Right Click: Save As)"), wxEmptyString);
+    ToolBarItem4 = ToolBar1->AddTool(tbrTime, _("Time"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\hourglass.ico"))), wxNullBitmap, wxITEM_CHECK, _("Start/Stop Time"), wxEmptyString);
+    ToolBarItem5 = ToolBar1->AddTool(tbrDebug, _("Debug"), wxBitmap(wxImage(_T("C:\\Users\\Owner\\Documents\\CodeBlocks\\proceduralgrapher\\bug_delete.ico"))), wxNullBitmap, wxITEM_NORMAL, _("Debugging Window"), wxEmptyString);
     ToolBar1->Realize();
     SetToolBar(ToolBar1);
     FileDialogOpen = new wxFileDialog(this, _("Open"), wxEmptyString, wxEmptyString, _("Graphscript Files (*.grs)|*.grs|All Files (*.*)|*.*"), wxFD_DEFAULT_STYLE|wxFD_FILE_MUST_EXIST, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
@@ -450,10 +469,11 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
 
     Connect(ID_TXTEXPR,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&proceduralgrapherDialog::Tokenize);
     Connect(ID_TXTOUTPUT,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&proceduralgrapherDialog::OntxtOutputText);
-    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::Onchk3DClick);
-    Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::OnchkGridClick);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::OnbtnStartStopTimeClick);
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::OnbtnResetTimeClick);
+    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::Onchk3DClick);
+    Connect(ID_SLIDER1,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&proceduralgrapherDialog::OnDetailSliderCmdScrollThumbTrack);
+    Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&proceduralgrapherDialog::OnchkGridClick);
     GLCanvas1->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&proceduralgrapherDialog::OnGLCanvas1LeftDown,0,this);
     GLCanvas1->Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&proceduralgrapherDialog::OnGLCanvas1LeftUp,0,this);
     GLCanvas1->Connect(wxEVT_MIDDLE_DOWN,(wxObjectEventFunction)&proceduralgrapherDialog::OnGLCanvas1MiddleDown,0,this);
@@ -823,7 +843,7 @@ void proceduralgrapherDialog::OnGLCanvas1LeftDown(wxMouseEvent& event)
 void proceduralgrapherDialog::OnGLCanvas1LeftUp(wxMouseEvent& event)
 {
     leftdown = false;
-    parserdata.setdetail(100);
+    parserdata.setdetail(setdetail);
     if(!Timer1.IsRunning())
         interpret();
 }
@@ -847,7 +867,7 @@ void proceduralgrapherDialog::OnGLCanvas1MouseMove(wxMouseEvent& event)
             parserdata.right += dx * scalex;
             parserdata.top -= dy * scaley;
             parserdata.bottom -= dy * scaley;
-            parserdata.setdetail(40);
+            parserdata.setdetail(setdetail * 0.4);
         }
         else
         {
@@ -1090,4 +1110,12 @@ void proceduralgrapherDialog::OnDebugClicked(wxCommandEvent& event)
     //if (!debugshown)
         debugdialog->Show(true);
         debugshown = true;
+}
+
+void proceduralgrapherDialog::OnDetailSliderCmdScrollThumbTrack(wxScrollEvent& event)
+{
+    setdetail = 100 * pow(1.3, event.GetPosition());
+    parserdata.setdetail(setdetail);
+    std::cout << "detail: " << parserdata.detail << "\n";
+    interpret();
 }
