@@ -1828,18 +1828,19 @@ void interpreter::evaluate(parametricplot* parp)
         {
             if (evaluate(parp->extraparams->step).type != val_number)
                 throw(error("Error: cannot have non-numeric step size"));
-            ustep = max(evaluate(parp->extraparams->step).val.n, (to - from) / data.detail / 100);
+            ustep = max(evaluate(parp->extraparams->step).val.n, (uto - ufrom) / data.detail / 100);
         }
         else
-            ustep = (to - from) / data.detail * 2;
+            ustep = (uto - ufrom) / data.detail * 2;
 
         double u = ufrom;
 
         int ncellst = ceil((to - from) / step);
         int ncellsu = ceil((uto - ufrom) / ustep);
 
-        std::cout << ncellsu << "\n";
-        vert3f** grid = new vert3f*[ncellst + 3];        // mapping polar coord (theta, phi) to cartesian (x, y, z) - makes normal calcs + rendering easier.
+        std::cout << "u, v:\n" << ncellst << "\n" << ncellsu << "\n";
+
+        vert3f** grid = new vert3f*[ncellst + 3];
         for (int i = 0; i < ncellst + 3; i++)
             grid[i] = new vert3f[ncellsu + 3];           //    "fencing" vertex (+1) and 1 step padding on each side for normal calculation (+2).
 
