@@ -6,5 +6,5 @@ def fibs(n)
   return a
 end
 
-print(fibs(1000000))
-print(dt)
+y = fibs(x)
+print(fibs(1000))

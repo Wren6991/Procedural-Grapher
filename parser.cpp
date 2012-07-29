@@ -958,7 +958,7 @@ bool tagged_value::operator<(const tagged_value& other) const
         return true;
     else if (type == other.type)
         if (type == val_number)
-            return val.n < other.val.n;
+            return floor(val.n) < floor(other.val.n);           // compare as integer vals: this lets us do table plots, e.g. y = t[x]. NB this function is only used when looking up from arrays.
         else
             return val.str < other.val.str;
     else

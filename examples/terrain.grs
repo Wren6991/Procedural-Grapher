@@ -1,3 +1,5 @@
+# Best seen in 3D :)
+
 let lerp(a, b, t) = a * (1 - t) + b * t
 let frac(x) = x - floor(x)
 
@@ -14,9 +16,6 @@ def fbm(x, z, freq, amp, octaves)
     return 0
   end
 end
-
-y = fbm(x, z, 2, 0.5, 3)
-
 
 let lerp(a, b, t) = a * (1 - t) + b * t
 

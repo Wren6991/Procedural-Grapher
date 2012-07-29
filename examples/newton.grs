@@ -1,3 +1,5 @@
+# Press Ctrl-T!
+
 def f(x) return x + sin(time * 3) * sin(x) end
 def g(x) return (x + sin(time * 2)/3)^3/3 - x end
 
