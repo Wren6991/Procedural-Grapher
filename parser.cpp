@@ -11,6 +11,7 @@
 ////////////<Must>/////////////
 //
 ///////////<Should>////////////
+//  line/character numbers for syntax errors!
 //  fix normal calculations - calculate only where they're needed.
 //  procedures as values
 //  anonymous functions
@@ -965,11 +966,6 @@ bool tagged_value::operator<(const tagged_value& other) const
         return false;
 }
 
-error::error(std::string errstring_)
-{
-    errstring = errstring_;
-}
-
 value::value()
 {
     negative = false;
@@ -978,6 +974,7 @@ value::value()
 
 assg_lvalue parser::getlvalue(std::string str)
 {
+
 }
 
 arrayitem::arrayitem()

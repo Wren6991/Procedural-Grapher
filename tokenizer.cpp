@@ -108,7 +108,7 @@ std::vector <token> tokenize(std::string str)
                     state = s_comment;
                 else if (c == '"')
                     state = s_string;
-                else
+                else if (c)
                     throw(1337);
                 break;
             case s_number:
@@ -183,6 +183,8 @@ std::vector <token> tokenize(std::string str)
                 break;
         }
     } while (c);
+    for (unsigned int i = 0; i < tokens.size(); i++)
+        std::cout << tokens[i].type << ":\t\"" << tokens[i].value << "\"\n";
     return tokens;
 }
 

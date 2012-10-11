@@ -2,13 +2,7 @@
 #define PARSER_H_INCLUDED
 
 #include "tokenizer.h"
-
-class error
-{
-    public:
-    std::string errstring;
-    error(std::string);
-};
+#include "error.h"
 
 class block;
 class procedurecall;
