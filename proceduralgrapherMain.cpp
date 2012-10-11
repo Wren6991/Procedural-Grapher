@@ -333,6 +333,25 @@ tagged_value type_tv(arglist_member *arg)
     }
     return rv;
 }
+
+tagged_value mandelbrot_tv(arglist_member *arg)
+{
+    if (!(arg && arg->next))
+        throw(error("Error: mandelbrot expects two arguments."));
+    double ca = arg->v.val.n;
+    double cb = arg->next->v.val.n;
+    double za = ca;
+    double zb = cb;
+    double zatemp;
+    int i;
+    for (i = 0; i < 50 && za * za + zb * zb < 4; i++)
+    {
+        zatemp = za;
+        za = za * za - zb * zb + ca;
+        zb = 2 * zatemp * zb + cb;
+    }
+    return tagged_value((double)i / 50.0);
+}
 //helper functions
 enum wxbuildinfoformat {
     short_f, long_f };
@@ -548,6 +567,7 @@ proceduralgrapherDialog::proceduralgrapherDialog(wxWindow* parent,wxWindowID id)
     funcs["getpersistent"] = getpersistent;
     funcs["setpersistent"] = setpersistent;
     funcs["type"] = type_tv;
+    funcs["mandelbrot"] = mandelbrot_tv;
     lastcanvaswidth = 300;
     lastcanvasheight = 300;
     tokens = tokenize(std::string("y = x^3 - x"), funcs);

@@ -79,16 +79,6 @@ class token
     token(token_type_enum, std::string);
 };
 
-class streambuffer
-{
-    public:
-    std::string str;
-    int index;
-    int size;
-    streambuffer (std::string);
-    char next();
-};
-
 std::vector <token> tokenize(std::string);
 std::vector <token> tokenize(std::string, std::map <std::string, dfuncd>);
 
