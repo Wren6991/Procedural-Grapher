@@ -6,6 +6,8 @@
 #include <vector>
 #include <map>
 
+#include "error.h"
+
 typedef enum {
     t_eof = 0,  //end of file
     t_number,

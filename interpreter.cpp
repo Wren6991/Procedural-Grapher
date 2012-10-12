@@ -231,7 +231,11 @@ void interpreter::evaluate(statement* stat)
                 throw(error("Error: Maximum stack size exceeded"));
             temp = evaluate(stat->stat.procstat->name);
             if (temp.type != val_procedure) //not defined
-                throw(n_procedure);
+            {
+                std::stringstream ss;
+                ss << "Error: procedure \"" << stat->stat.procstat->name << "\" is not defined.";
+                throw(error(ss.str()));
+            }
             proc = temp.val.proc;
 
             if(stat->stat.procstat->args.size() == proc->args.size())
@@ -613,7 +617,9 @@ void interpreter::evaluate(explicitplot* relation)
         }
         else
         {
-            throw (e_ordinate);
+            std::stringstream ss;
+            ss << "Error: " << relation->rangevar << " is not a valid subject for a relation";
+            throw (ss.str());
         }
     }
     else
@@ -923,9 +929,11 @@ void interpreter::evaluate(explicitplot* relation)
                 delete normals[i];
             delete normals;
         }
-        else
+        else            // not x, y, z, r
         {
-            throw (e_ordinate);
+            std::stringstream ss;
+            ss << "Error: " << relation->rangevar << " is not a valid subject for a relation";
+            throw (ss.str());
         }
 
     }

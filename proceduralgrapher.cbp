@@ -68,6 +68,8 @@
 		<Unit filename="DebugDialog.h" />
 		<Unit filename="draw.cpp" />
 		<Unit filename="draw.h" />
+		<Unit filename="error.cpp" />
+		<Unit filename="error.h" />
 		<Unit filename="interpreter.cpp" />
 		<Unit filename="interpreter.h" />
 		<Unit filename="msdata.h" />

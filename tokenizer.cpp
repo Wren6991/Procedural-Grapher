@@ -109,7 +109,7 @@ std::vector <token> tokenize(std::string str)
                 else if (c == '"')
                     state = s_string;
                 else if (c)
-                    throw(1337);
+                    throw(error("Error: unrecognized character"));
                 break;
             case s_number:
                 if (c == '.')
@@ -156,7 +156,7 @@ std::vector <token> tokenize(std::string str)
             case s_string:
                 if (c == '"')
                 {
-                    tokens.push_back(token(t_string, str.substr(startindex + 1, index - startindex - 2)));
+                    tokens.push_back(token(t_string, str.substr(startindex + 1, index - startindex - 1)));
                     state = s_start;
                 }
                 break;
@@ -183,6 +183,8 @@ std::vector <token> tokenize(std::string str)
                 break;
         }
     } while (c);
+    if (state == s_string)
+        throw(error("Error: expected \" to close string near EOF"));
     for (unsigned int i = 0; i < tokens.size(); i++)
         std::cout << tokens[i].type << ":\t\"" << tokens[i].value << "\"\n";
     return tokens;
